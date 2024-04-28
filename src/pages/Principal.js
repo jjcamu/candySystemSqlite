@@ -11,6 +11,7 @@ import {Grid, Button} from '@material-ui/core' //Grid : para organizar los eleme
 import {makeStyles} from '@material-ui/core/styles' // para personalizar los estilos de un elemento
 
 
+
 /// Segundo : Definimos los estilos
 
 const useStyles = makeStyles({
@@ -23,9 +24,10 @@ const useStyles = makeStyles({
         
     },
     contenedorSuperior :{  //aca defino los estilos para el grid container (contenedor padre, el que contiene a los items)
-
+        display : 'flex', //aplico flexbox
         justifyContent : 'center', // para que esta propiedad de flexbox tenga efecto, debe definirse en el contenedor padre
-        height: '70%'  // que ocupe el x % de la altura del elemento padre (que en este caso es un elemento div)
+        height: '70%',  // que ocupe el x % de la altura del elemento padre (que en este caso es un elemento div)
+
     },
     containerInferior : {  //grid container que contiene a su vez el grid container de los botones.
     
@@ -48,8 +50,23 @@ const useStyles = makeStyles({
 
 
         
+    },
+    contenedorImagen:{
+        //width : '60%',
+        height : '80vh',
+        //backgroundColor: 'green'
+    },
+    imagen:{
+        width : '100%',
+        //height : '100%'
     }
+
+
+
+
 })
+
+
 
 
 function Principal() {  //Definimos el componente funcional 'Principal'
@@ -63,10 +80,19 @@ function Principal() {  //Definimos el componente funcional 'Principal'
         <div className={estilos.root}>  {/* aplico el estilo en este elemento html */}
             <Grid container className={estilos.contenedorSuperior}>   {/* creamos un grid contenedor */}
 
-                <Grid item className={estilos.imagen} >
+                <Grid item xs={false} sm={2} md={2} lg={2} xl={2}>
+                </Grid>
 
-                  <img src={require('../assets/img/imagen_caramelo.jpg')}  alt={''} /> 
+                <Grid item className={estilos.contenedorImagen} xs={12} sm={8} md={8} lg={8} xl={8} >
 
+ 
+                     <img src={require('../assets/img/candysystem_logo2.png')} className={estilos.imagen}    alt={''} />  
+
+                  
+                </Grid>
+
+                
+                <Grid item xs={false} sm={2} md={2} lg={2} xl={2}>
                 </Grid>
 
             </Grid>

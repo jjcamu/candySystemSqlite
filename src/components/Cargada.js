@@ -1,6 +1,7 @@
-import React from 'react';
-import { Grid, Button, Typography, Select,  MenuItem } from '@material-ui/core'
+import React, { useEffect, useState  }  from 'react';
+import { Grid,  Select,  MenuItem } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles' // para personalizar los estilos de un elemento
+import axios from 'axios'  //modulo que me permite acceder a la api
 
 
 
@@ -47,6 +48,39 @@ function Cargada() {
 
     const estilos = useStyles()
 
+    
+
+
+    // logica para mostrar los productos en los select ------------------------------------------------------------------
+
+    const [arrayProductos, setArrayProductos] = useState([]) 
+
+    useEffect(() => {
+
+        const getProductos = async() => {
+            const res = await axios.get('http://localhost:4000/api/productos')
+
+            setArrayProductos(res.data)
+            
+          }
+
+          getProductos()
+
+          
+          
+
+  
+    }, []);  //quité la dependencia arrayPedidos , para que no se vuelva a llamar indefinidamente a useEffect
+    // esto provocará que solo se llame a useEffect en la primera renderizacion del componente
+
+
+//-------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
     return (
         <div className={estilos.root}>
 
@@ -55,11 +89,13 @@ function Cargada() {
 
                 <Grid container className={estilos.gridItem1} item={true} xs={6} sm={6} md={6} lg={6} xl={6} >
 
-                    <Select className={estilos.select1} variant="outlined"  defaultValue="">
-                        <MenuItem value={10}>Ten</MenuItem>
-                        <MenuItem value={20}>Twenty</MenuItem>
-                        <MenuItem value={30}>Thirty</MenuItem>
+                    <Select className={estilos.select1} variant="outlined"  defaultValue=""  >
+                        <MenuItem value={0.3}>1 tachada</MenuItem>
+                        <MenuItem value={0.5}>1/2 cargada</MenuItem>
+                        <MenuItem value={1}>1 cargada</MenuItem>
+
                     </Select>
+
 
 
 
@@ -69,10 +105,12 @@ function Cargada() {
                 <Grid item className={estilos.gridItem2} xs={6} sm={6} md={6} lg={6} xl={6}>
 
 
-                    <Select className={estilos.select2} variant="outlined"  defaultValue="">
-                        <MenuItem value={10}>Ten</MenuItem>
-                        <MenuItem value={20}>Twenty</MenuItem>
-                        <MenuItem value={30}>Thirty</MenuItem>
+                    <Select className={estilos.select2} variant="outlined"  defaultValue=""  >
+                    {
+                        arrayProductos.map(datos => ( <MenuItem key={arrayProductos.indexOf(datos)} 
+                        value={arrayProductos.indexOf(datos)} >{datos.nombre}</MenuItem> ))
+                    }
+
                     </Select>
 
 
@@ -99,9 +137,11 @@ function Cargada() {
 
 
 
-
+           
 
         </div>
+
+    
     );
 }
 

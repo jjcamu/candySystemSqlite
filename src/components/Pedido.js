@@ -48,7 +48,7 @@ function Pedido(props) {
             
 
 
-            { props.mostrarFechaAnterior() !== props.datosDelPedido.fecha ?   //comparo las fechas.
+            { props.mostrarFechaAnterior() != props.datosDelPedido.dia ?   //comparo las fechas.
             //esto lo hago para agrupar los pedidos de la misma fecha. Si el pedido anterior tiene distinta fecha al pedido actual,
             // entonces renderizo el pedido actual con la fecha y su checkbox. En caso de ser iguales, renderizo el pedido pero
             // sin la fecha y el checkbox.
@@ -59,13 +59,14 @@ function Pedido(props) {
 
                     <Grid item className = {estilos.check} xs={12} sm={3} md={3} lg={3} xl={3} >
                         {/* checkbox */} 
-                        <Checkbox defaultChecked color="primary" inputProps={{ 'aria-label': 'secondary checkbox' }}/>
+                        <Checkbox color="primary" inputProps={{ 'aria-label': 'secondary checkbox' }}/>
 
                     </Grid>
 
                     <Grid item className = {estilos.itemSuperior}  xs={12} sm={9} md={9} lg={9} xl={9}>
 
-                        <p >Pedido de la fecha: {props.datosDelPedido.fecha}</p>
+                        <p >Pedido de la fecha: {props.datosDelPedido.dia}</p>
+                        
 
                         
 
@@ -122,7 +123,7 @@ function Pedido(props) {
 
             }
 
-            {props.guardarFecha(props.datosDelPedido.fecha)}
+            {props.guardarFecha(props.datosDelPedido.dia)}
 
             </Grid>
  

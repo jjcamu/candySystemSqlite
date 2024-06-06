@@ -3,19 +3,30 @@ import { Link } from 'react-router-dom';  // para poder enlazar a otras paginas 
 import { Grid, Button } from '@material-ui/core' 
 import { makeStyles} from '@material-ui/core/styles'
 import axios from 'axios'  //modulo que me permite acceder a la api
+import Cookies from 'universal-cookie' //para verificar si se ingreso correctamente la contraseña  
 
+//importo estos modulos para poder renderizar nuevamente el dom (si no renderizo fallan los checkbox despues de imprimir)
+import ReactDOM from 'react-dom';
+import Router from '../routes/Router';
+
+import './estiloPaginaImpresion.css'; 
+//estilos que configuran la pagina de impresion.
+//Los componentes Grid de material ui se imprimian incorrectamente, cambiando la disposicion
+// de la pagina de impresion con estos estilos, se imprimen bien.
 
 
 import Pedido from '../components/Pedido'
 
 
 const useStyles = makeStyles({
-
     root: {
-        flexGrow : 1 ,
+
         backgroundColor : 'gray',
         height: '95vh',  //que ocupe casi todo el alto de la pantalla
-        
+
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems : 'center'
         
     },
     containerSuperior : {
@@ -42,13 +53,50 @@ const useStyles = makeStyles({
     boton: {  // cada boton individual
         height : '100%',  //todos los botones tendran el alto del container padre, (del container botones)
 
-        width : '200px', // establezco el mismo ancho para todos los botones (colocar la abreviacion 'px' !!)
-
-
-
+        width : '200px', // establezco el mismo ancho para todos los botones (colocar la abreviacion 'px' !!
         
-    }
+    },
+    contenidoAImprimir:{  //estilo del div contenedor de la hoja a imprimir, para que no sea visible en el navegador.
+
+       display: 'none',  //invisible
+      
+
+
+    },
+
+    contenidoAImprimir2:{  // estilos de la hoja a imprimir -------------------------------------------------------------
+ 
+        display: 'flex',
+        flexDirection: 'column', //un container encima del otro
+
+
+   },
+   tituloAImprimir:{
+
+        textAlign: 'center',  //titulo centrado
+
+
+   },
+   tituloAImprimir2:{
+
+       display: 'flex',   //reseteo flex para sobreescribir el flexDirection column
+       justifyContent: 'space-around',  //distribuyo horizontalmente los subtitulos
+
+
+  },
+   listaAImprimir :{
+       textAlign: 'center'  // centrar la lista
+        
+   },
+
 })
+
+
+
+
+
+
+
 
 var fechaAnterior = 0
 
@@ -74,14 +122,15 @@ function limpiarVariableFechaAnterior(){
 
 
 
-
-
 function VerPedidos() {
 
 
     const estilos = useStyles()
 
+    const cookies = new Cookies(); 
+
     let containerDePedidos = useRef(null);
+    let refContenidoAImprimir = useRef(null)
 
 
     const [arrayPedidos, setArrayPedidos] = useState([]) 
@@ -96,6 +145,10 @@ function VerPedidos() {
                 mostrarPedidos()
                 setPermitirPeticion(false)
 
+        }
+
+        if (!cookies.get('id')){  //si no fue ingresada correctamente la contraseña, osea no se almacenó nada en la cookie 'id'...
+        window.location.href = "/" //se redirigirá automaticamente al 'login'
         }
          
     }, [permitirPeticion]) //cada vez que cambie el estado de la bandera, se llamará a 'useEffect'
@@ -119,41 +172,106 @@ function VerPedidos() {
 
     const eliminarPedido = async (e) => {       /* esta funcion es 'async' , porque vamos a realizar una peticion asincrona */
        
+
+    
          for (let x = 0; x < containerDePedidos.current.children.length; x++) { //recorro todas las filas del listado
             
-           
-            if (containerDePedidos.current.children[x].children[0].children[0].children[0] != undefined){ 
-                //si la fila del listado posee un checkbox
-                
-                 if (containerDePedidos.current.children[x].children[0].children[0].children[0].children[0].children[0].checked == true){
+
+
+    
+            if (containerDePedidos.current.children[x].children[0].children[0].children[0].tagName == "DIV"){ 
+            //si la fila del listado posee un checkbox 
+            //(indagando en la estructura del dom, pude ver que el checkbox se encuentra en 
+            //'containerDePedidos.current.children[x].children[0].children[0].children[0]' , que es un contenedor 'div')
+
+                  if (containerDePedidos.current.children[x].children[0].children[0].children[0].children[0].children[0].children[0].checked == true){
                     //si ese checkbox esta seleccionado..
 
 
-                    let fechaDelPedidoAEliminar = containerDePedidos.current.children[x].children[0].children[1].children[0].childNodes[1].data
-                    // guardo la fecha del pedido cuyo checkbox esta seleccionado
+                     let fechaDelPedidoAEliminar = arrayPedidos[x].dia
+                    // guardo la fecha del pedido cuyo checkbox esta seleccionado (la fila 'x' de la lista se corresponde con el
+                    // elemento del arrayPedidos, asi que de este ultimo obtengo el dia)
 
 
                     axios.delete('http://localhost:4000/api/pedidos/' + fechaDelPedidoAEliminar).then(setPermitirPeticion(true))
                     // elimino los registros con esa fecha. La fecha es enviada a la api concatenadola a la url, osea como un parametro.
-                    //mostrarPedidos()
+                    //mostrarPedidos()  
                     
-                 }
-            }            
+                 } 
+            }        
 
-        }
+        } 
 
+    }
+
+
+        /// Cancelar pedidos ----------------------------------------------------------------------------------------------
+        // Se elimina el pedido de la tabla 'pedidos', y se restituye el stock anterior de los insumos gastados.
+
+
+        const cancelarPedido = async (e) => {       /* esta funcion es 'async' , porque vamos a realizar una peticion asincrona */
+       
+        for (let x = 0; x < containerDePedidos.current.children.length; x++) { //recorro todas las filas del listado
+           
+
+           if (containerDePedidos.current.children[x].children[0].children[0].children[0].tagName == "DIV"){ 
+           //si la fila del listado posee un checkbox 
+           //(indagando en la estructura del dom, pude ver que el checkbox se encuentra en 
+           //'containerDePedidos.current.children[x].children[0].children[0].children[0]' , que es un contenedor 'div')
+
+                 if (containerDePedidos.current.children[x].children[0].children[0].children[0].children[0].children[0].children[0].checked == true){
+                   //si ese checkbox esta seleccionado..
+
+
+                    let fechaDelPedidoACancelar = arrayPedidos[x].dia
+                   // guardo la fecha del pedido cuyo checkbox esta seleccionado (la fila 'x' de la lista se corresponde con el
+                   // elemento del arrayPedidos, asi que de este ultimo obtengo el dia)
+
+
+                   axios.delete('http://localhost:4000/api/pedidos/cancelar/' + fechaDelPedidoACancelar).then(setPermitirPeticion(true))
+                   // cancelo los registros con esa fecha. La fecha es enviada a la api concatenadola a la url, osea como un parametro.
+                   // Ademas, se devuelven al stock , los insumos gastados por el pedido realizado.
+                  
+                   
+                } 
+           }        
+
+       } 
+
+
+
+   }
+
+
+    function imprimirPedidos(){
+
+
+        //guardo el contenido html del div que quiero imprimir
+        let contenidoAImprimir = refContenidoAImprimir.current.innerHTML 
+
+        //guardo el contenido html original de este documento
+        let contenidoOriginal = document.body.innerHTML; 
+       
+        //guardo el contenido html a imprimir en el body de este documento
+        document.body.innerHTML = contenidoAImprimir
+ 
+        window.print(); //imprimo el contenido de la ventana, osea el documento
+
+        document.body.innerHTML = contenidoOriginal //devuelvo el contenido original a este documento
+
+        //renderizo nuevamente el documento, para que me funcione correctamente todos sus componentes
+        //(si omito este paso, dejan de funcionar los checkbox y el boton de imprimir)
+        ReactDOM.render( <Router />, document.querySelector('#root')); 
 
 
     }
 
-   
-
-
+ 
 
 
     return (
 
-        
+    <div>
 
         <Grid container className = {estilos.root}>
 
@@ -162,27 +280,27 @@ function VerPedidos() {
             <Grid container className = {estilos.containerSuperior}>
 
 
-                <Grid item  xs={false} sm={3} md={3} lg={3} xl={3} >
+                <Grid item  xs={false} sm={2} md={2} lg={2} xl={2} >
 
 
                 </Grid>
 
                 <Grid item ref={containerDePedidos}  xs={12} sm={8} md={8} lg={8} xl={8} >
                     
+
+                    {limpiarVariableFechaAnterior()}
+                   {/*  Cuando se lista un solo pedido, la fecha del pedido anterior coincide con la del pedido actual (ver logica 
+                    del componente Pedido.js) y eso no permite que se muestre la fecha del pedido listado.
+                    Para que eso no ocurra, la funcion 'limpiarVariableFechaAnterior' pone en cero la fecha del pedido anterior. */}
+
                     {/* recorro el array 'arrayDatos' y por cada elemento de ese array, renderizo un componente 'Pedido'.
                     En cada componente pedido ingresaré datos por medio de su propiedades 'datosDelPedido, guardarFecha...' */}
                     
                     {
                     arrayPedidos.map(datos => (<Pedido key={arrayPedidos.indexOf(datos)} datosDelPedido = {datos} 
-                    guardarFecha= {guardarFecha} mostrarFechaAnterior = {mostrarFechaAnterior}  />  ))
+                    guardarFecha= {guardarFecha} mostrarFechaAnterior = {mostrarFechaAnterior} nroPedido ={arrayPedidos.indexOf(datos)}
+                    pedidosTotales = {arrayPedidos.length} />  ))
                     }
-
-                    {limpiarVariableFechaAnterior()} {/* esta funcion sirve para que la primera fecha a comparar sea 0, 
-                    osea diferente a la fecha del primer pedido que se muestra. 
-                    Si queda almacenada una fecha de una lista anterior de pedidos, y esta
-                    coincide con la fecha del primer pedido de la lista, no se mostrará la fecha del primer pedido(para comprender
-                    mejor esto, revisar la logica del componente 'Pedido.js') */}
-                    
 
                                 
                     {/* 'indexOf' devuelve el indice correspondiente al elemento del array ingresado como parametro.
@@ -195,7 +313,7 @@ function VerPedidos() {
 
                 </Grid>    
 
-                <Grid item  xs={false} sm={1} md={1} lg={1} xl={1} >
+                <Grid item  xs={false} sm={2} md={2} lg={2} xl={2} >
 
 
                 </Grid>
@@ -211,11 +329,11 @@ function VerPedidos() {
             <Grid container className = {estilos.containerInferior} >
 
                 <Grid container className = {estilos.containerBotones} >
-                    <Link  style={{ textDecoration: 'none'}} to="/">  
-                        <Button  className = {estilos.boton} variant = { 'contained'} color = {"primary"}>
+
+                        <Button  className = {estilos.boton} variant = { 'contained'} color = {"primary"} onClick={cancelarPedido}>
                             Cancelar Pedido
                         </Button>   
-                    </Link> 
+
 
 
                         <Button className = {estilos.boton} variant = { 'contained'} color = {"primary"} onClick={eliminarPedido}>
@@ -223,13 +341,13 @@ function VerPedidos() {
                         </Button>   
 
 
-                    <Link style={{ textDecoration: 'none'}} to="/">  
-                        <Button className = {estilos.boton} variant = { 'contained'} color = {"primary"}>
-                            Imprimir
+   
+                        <Button className = {estilos.boton} variant = { 'contained'} color = {"primary"} onClick={imprimirPedidos}>
+                            Imprimir 
                         </Button>   
-                    </Link> 
+    
 
-                    <Link  style={{ textDecoration: 'none' }} to="/">  
+                    <Link  style={{ textDecoration: 'none' }} to="/principal">  
                         <Button  className = {estilos.boton} variant = { 'contained'} color = {"primary"} onClick = {limpiarVariableFechaAnterior}>
                             Volver
                         </Button>   
@@ -244,6 +362,56 @@ function VerPedidos() {
 
 
         </Grid>
+
+
+        
+
+
+        {/* CONTENIDO QUE SERA IMPRESO -----------------------------------------------------------------------------------  */}
+
+
+
+        <div ref={refContenidoAImprimir} className = {estilos.contenidoAImprimir}>
+
+
+  
+            <div className = {estilos.contenidoAImprimir2}>
+
+                <div className = {estilos.tituloAImprimir}>
+
+                    <h2>PEDIDOS ORDENADOS POR FECHA:</h2>
+
+                </div> 
+
+
+
+
+                <div className = {estilos.listaAImprimir}>
+                    
+
+
+                    {
+                    arrayPedidos.map(datos => (<Pedido key={arrayPedidos.indexOf(datos)} datosDelPedido = {datos} 
+                    guardarFecha= {guardarFecha} mostrarFechaAnterior = {mostrarFechaAnterior} eliminarCheck = {true}  />  ))
+                    }
+                    {/* ingreso la propiedad 'eliminarCheck' en true, para que no se muestre el checkbox del componente 'Pedido', ya que
+                    no tiene sentido el checkbox en una hoja impresa. */}
+
+                    
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+
+
+
+    </div>
+
 
     );
 }

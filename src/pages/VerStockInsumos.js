@@ -1,11 +1,14 @@
-import React, { useEffect, useRef, useState }  from 'react';
+import React, {  useEffect, useRef, useState }  from 'react';
 import { Link } from 'react-router-dom';  // para poder enlazar a otras paginas de manera mas fluida desde un button
 import { Grid, Button, TextField, Modal , Typography } from '@material-ui/core' 
 import { makeStyles} from '@material-ui/core/styles'
-import { DataGrid } from '@material-ui/data-grid';  // para crear la tabla
+import { DataGridPro, useGridApiRef } from '@mui/x-data-grid-pro';  // para crear la tabla
+
 import axios from 'axios'  //modulo que me permite acceder a la api
+import Cookies from 'universal-cookie' //para verificar si se ingreso correctamente la contraseña  
 
-
+import ReactDOM from 'react-dom';
+import Router from '../routes/Router';
 
 
 const useStyles = makeStyles({
@@ -78,7 +81,28 @@ const useStyles = makeStyles({
         justifyContent : 'space-evenly',
         //backgroundColor : 'green',
 
-    }
+    },
+    contenidoAImprimir:{  //estilo del div contenedor de la hoja a imprimir, para que no sea visible en el navegador.
+
+        display: 'none',  //invisible
+       
+ 
+ 
+    },
+    contenidoAImprimir2: {  // estilos de la hoja a imprimir -------------------------------------------------------------
+
+        display: 'flex',
+        flexDirection: 'column', 
+        //transform: 'rotate(270deg)',  //rotar el 'div', para no tener que rotar la hoja a imprimir
+        //padding : '100px'
+
+    },
+    tituloAImprimir: {
+
+        textAlign: 'center',  //titulo centrado
+
+
+    },
 
 })
 
@@ -88,9 +112,13 @@ function VerStockInsumos() {
 
     const estilos = useStyles()
 
-    let refGrid = useRef(null);  // referencia al dataGrid
+    const cookies = new Cookies(); 
+
+    const apiRef = useGridApiRef();  // interfaz para interactuar con el dataGrid
 
     let refModalAgregarFila = useRef(null); //referencia a la ventana modal (cuadro de dialogo) de 'agregar nuevo insumo'
+
+    let refContenidoAImprimir = useRef(null)
 
 
     // Hook de estado
@@ -124,49 +152,42 @@ function VerStockInsumos() {
           width: 150,
           editable: true,
         },
+        {
+            field: 'limite', // cantidad limite de insumo (una cantidad menor mostrará un cartel de advertencia)
+            headerName: 'Limite',
+            width: 150,
+            editable: true,
+            type: 'number',
+        },
 
         
       ];
 
-    //datos de prueba (para rellenar la tabla) --------------------------------------------------------------------------------
 
-/*     const arrayInsumos = [   //datos que rellenan la tabla (filas)
-        {
-            id : 1,
-            insumo: 'Propoleo',
-            cantidad: '20',
-            unidad: 'kg'
-        },
-        {
-            id : 2,
-            insumo: 'Glucosa',
-            cantidad: '50',
-            unidad: 'litros'
-        },
-        {
-            id : 3,
-            insumo: 'Azucar',
-            cantidad: '120',
-            unidad: 'kg'
-        },
-    ] */
 
     //traer datos de la tabla de insumos --------------------------------------------------------------------------------------
 
     const [arrayInsumos, setArrayInsumos] = useState([])
     const [permitirPeticion, setPermitirPeticion] = useState(true) // bandera que utilizo para bloquear las peticiones constantes a la api.
     
+    const [hojaAImprimir, setHojaAImprimir] = useState()
+
 
 
         useEffect(() => {
             if (permitirPeticion) { //para que no se llame indefinidamente a la funcion 'mostrarPedidos'
     
                     mostrarInsumos()
+
                   
     
             }
+
+            if (!cookies.get('id')){  //si no fue ingresada correctamente la contraseña, osea no se almacenó nada en la cookie 'id'...
+            window.location.href = "/" //se redirigirá automaticamente al 'login'
+            }
              
-        }, [permitirPeticion]) //cada vez que cambie el estado de la bandera, se llamará a 'useEffect'
+        }, [permitirPeticion, hojaAImprimir]) //cada vez que cambie el estado de la bandera, se llamará a 'useEffect'
     
     
         function mostrarInsumos() { 
@@ -176,8 +197,13 @@ function VerStockInsumos() {
 
                 res.data.map((row, index) => row["id"] = index) //guardo en el campo 'id' de todas las filas, el indice .
                 //Esto lo hago para que las filas queden enumeradas, y pueda utilizarse en el dataGrid.
-                   
+    
                 setArrayInsumos(res.data)
+
+                calcularHojasYColumnas(res.data)  //diseño la hoja de impresion segun los datos traidos de la BBDD
+
+                
+
                 setPermitirPeticion(false)  // a diferencia del componente 'VerPedido.js', seteo la bandera desde aca, porque
                 // al trabajar con peticiones y datagrids se producen 'delays' y no llega a cargarse el datagrid con los datos.
     
@@ -193,10 +219,13 @@ function VerStockInsumos() {
 
     const guardarCambios = async (e) => {       /* esta funcion es 'async' , porque vamos a realizar una peticion asincrona */
        
-        let arrayFilasDataGrid = refGrid.current.firstElementChild.firstChild.offsetParent.childNodes[1].children[1].children[0].children[0].children[0].children[0].children[0].children
+
+        // guardo el numero total de filas del dataGrid
+        let cantidadFilasDataGrid = apiRef.current.getRowsCount() 
 
 
-        for (let x = 0; x < arrayFilasDataGrid.length; x++) { // itero todas las filas del dataGrid
+        for (let x = 0; x < cantidadFilasDataGrid; x++) { // itero todas las filas del dataGrid
+
 
             const nuevosDatos = {  //creo un objeto por cada fila
                 //guardo el contenido de cada celda en la propiedad correspondiente
@@ -205,12 +234,12 @@ function VerStockInsumos() {
                 //Esto lo hago para que la fila modificada coincida con la fila original de la BBDD.
                 // No confundir este campo '_id' con el campo 'id', que fue creado para poder utilizar el dataGrid.
 
-                nombre: arrayFilasDataGrid[x].children[1].innerText,
-                cantidad: parseFloat((arrayFilasDataGrid[x].children[2].innerText).replace(/.(?=\d{3})/g, '').replace(',', '.')),
-                //con el primer metodo 'replace()' y su RegEx (expresion regular), quito el punto separador de miles (thousand)
-                // para no tener conflictos con mongoDB, porque confunde el punto separador con el punto decimal.
-                // con el segundo 'replace()' convierto la coma decimal en punto decimal, ya que parseFloat no reconoce la coma decimal.
-                unidad: arrayFilasDataGrid[x].children[3].innerText
+               
+                nombre: await apiRef.current.getRow(x).nombre, //tomo el valor guardado en la fila 'x' columna 'nombre', y lo guardo en la propiedad 'nombre'
+                cantidad: await apiRef.current.getRow(x).cantidad,
+                unidad: await apiRef.current.getRow(x).unidad,
+                limite: await apiRef.current.getRow(x).limite,
+                
             }
 
             await axios.put('http://localhost:4000/api/insumos', nuevosDatos)
@@ -234,7 +263,7 @@ function VerStockInsumos() {
                 nombre : refModalAgregarFila.current.children[0].children[1].children[0].children[0].value,    
                 cantidad : refModalAgregarFila.current.children[1].children[1].children[0].children[0].value,  
                 unidad : refModalAgregarFila.current.children[2].children[1].children[0].children[0].value,
-
+                limite : refModalAgregarFila.current.children[3].children[1].children[0].children[0].value,
             }
             
             await axios.post('http://localhost:4000/api/insumos', nuevoInsumo)
@@ -259,33 +288,151 @@ function VerStockInsumos() {
     }
 
 
-        /// Eliminar insumo ----------------------------------------------------------------------------------------------
+    /// Eliminar insumo ----------------------------------------------------------------------------------------------
 
-        const eliminarInsumo = async (e) => {       /* esta funcion es 'async' , porque vamos a realizar una peticion asincrona */
+    const eliminarInsumo = async (e) => {       /* esta funcion es 'async' , porque vamos a realizar una peticion asincrona */
 
-        let arrayFilasDataGrid = refGrid.current.firstElementChild.firstChild.offsetParent.childNodes[1].children[1].children[0].children[0].children[0].children[0].children[0].children
+        // guardo en un mapa, todas las filas seleccionadas en el dataGrid
+        let filasSeleccionadas = apiRef.current.getSelectedRows()
 
-        for (let x = 0; x < arrayFilasDataGrid.length; x++) { // itero todas las filas del dataGrid
-           
-                if (arrayFilasDataGrid[x].children[0].children[0].children[0].children[0].checked == true){
-                //si el checkbox de esa fila esta seleccionado..
+        for (var [key, value] of filasSeleccionadas) { //recorro las filas seleccionadas
+        //'key' corresponde al numero de fila del dataGrid que fue seleccionada, 
+        //y 'value' es el contenido de la fila en forma de objeto (ej: 'value.nombre' es el dato ingresado en el campo 'nombre')
 
-                    let nombreDelInsumoAEliminar = arrayFilasDataGrid[x].children[1].innerText
-                    // guardo el nombre del insumo de la fila cuyo checkbox esta seleccionado
+            //console.log(key + " = " + value.nombre); 
 
-                    arrayFilasDataGrid[x].children[0].children[0].children[0].children[0].checked = false
-                    // deselecciono el checkbox
+            let _idDelInsumoAEliminar = arrayInsumos[key]._id
+            //Almaceno el campo '_id' de la fila seleccionada. (tener en cuenta que los indices de los elementos de 'arrayInsumos' 
+            //coinciden con el numero de fila del dataGrid)
+            //(tambien, tener en cuenta que el dataGrid esta mostrando el contenido de 'arrayInsumos', 
+            //el cual a su vez tiene almacenado el campo _id de cada fila).
+            //Decidí eliminar el insumo segun su _id, ya que en la tabla insumos pueden repetirse los nombres de los insumos
+            //en mas de una fila, pero nunca se repite el valor del campo _id.
 
-                    axios.delete('http://localhost:4000/api/insumos/' + nombreDelInsumoAEliminar).then(setPermitirPeticion(true))
-                    // elimino todos los registros con ese nombre.
-                    // luego de cumplirse la peticion, actualizo el contenido del dataGrid, invocando a 'setPermitirPeticion()'
+            axios.delete('http://localhost:4000/api/insumos/' + _idDelInsumoAEliminar).then(setPermitirPeticion(true))
+            // elimino el registro con ese _id. (solo puede haber uno)
+            // luego de cumplirse la peticion, actualizo el contenido del dataGrid, invocando a 'setPermitirPeticion()'
+        }
 
-                   
-                } 
-                       
-       }
 
-   }
+    }
+
+
+    // calculo de hojas y columnas a imprimir --------------------------------------------------------------------------
+
+
+
+    function calcularHojasYColumnas(array){
+
+        if (refContenidoAImprimir.current.children[1] != undefined){
+
+            //elimino el contenido a imprimir de lista anterior, para que pueda ser sustituido por la nueva lista
+            refContenidoAImprimir.current.children[1].innerHTML = ""
+
+        }
+
+        var contenidoAImprimir = refContenidoAImprimir.current
+
+        //calculo la cantidad de hojas a imprimir, segun la cantidad de registros en 'array', y teniendo en cuenta que
+        //se mostrarán hasta 100 registros por hoja
+        var cantidadHojas =  Math.ceil(array.length / 100) // 100 registros por hoja
+        //Math.ceil() redondea el resultado hacia arriba, osea si es 1.2 , devuelve 2.
+
+        var cantidadColumnasPorHoja = 2  //habran 2 columnas por hoja
+
+        var pepe = 0
+
+        var registro,  divRegistro
+
+
+        if (array != undefined){
+
+            for (let z = 0; z < cantidadHojas; z++){
+
+                    var divHoja = document.createElement("div") //creo un elemento div de forma dinamica (en tiempo de ejecucion)
+                    divHoja.style.display = 'flex' //defino sus estilos
+                    divHoja.style.flexDirection = 'row'
+                    divHoja.style.justifyContent = 'space-around'
+                    divHoja.style.marginBottom = '100px'
+
+        
+
+                    for (let y = 0; y < cantidadColumnasPorHoja; y++){
+
+                        var divColumna = document.createElement("div")
+                        divColumna.style.display = 'flex'
+                        divColumna.style.flexDirection = 'column'
+                        //divColumna.style.backgroundColor = 'green'
+
+
+
+                        for (let x = pepe; x < pepe + 50 ; x++){
+
+                            if (array[x] != undefined){  // si no hay mas registros, no entre al bloque
+
+                                divRegistro = document.createElement("div")
+
+                                divRegistro.style.fontFamily = 'courier'
+                                divRegistro.style.fontSize = '10px'
+
+                                registro = <h5 >{array[x].nombre + '.'.repeat(65 - ((array[x].nombre).length + ((array[x].cantidad).toString()).length + (array[x].unidad).length )) + array[x].cantidad + ' ' + array[x].unidad} </h5>
+
+                                divRegistro.innerHTML = registro.props.children
+                                //guardo el contenido html de 'registro' en el 'divRegistro'
+
+                            
+
+                                divColumna.appendChild(divRegistro) //meto el divRegistro en el divColumna
+                            }
+
+                        }
+
+                        pepe = pepe + 50 //para ir corriendo el 'for' 50 lugares, osea mostrar los siguientes 50 registros
+
+
+                        divHoja.appendChild(divColumna)
+                
+                    }
+
+                    contenidoAImprimir.appendChild(divHoja)
+
+
+
+            }
+
+        }
+
+
+    }
+
+
+
+
+   //funcion de imprimir --------------------------------------------------------------------------------------
+
+   function imprimirInsumos(){
+
+
+
+    //guardo el contenido html del div que quiero imprimir
+    let contenidoAImprimir = refContenidoAImprimir.current.innerHTML 
+
+    //guardo el contenido html original de este documento
+    let contenidoOriginal = document.body.innerHTML; 
+   
+    //guardo el contenido html a imprimir en el body de este documento
+    document.body.innerHTML = contenidoAImprimir
+
+    window.print(); //imprimo el contenido de la ventana, osea el documento
+
+    document.body.innerHTML = contenidoOriginal //devuelvo el contenido original a este documento
+
+    //renderizo nuevamente el documento, para que me funcione correctamente todos sus componentes
+    //(si omito este paso, dejan de funcionar los checkbox y el boton de imprimir)
+    ReactDOM.render( <Router />, document.querySelector('#root')); 
+
+
+}
   
     //--------------------------------------------------------------------------------------------------------------------
 
@@ -303,17 +450,18 @@ function VerStockInsumos() {
             <Grid container className = {estilos.containerSuperior}>
 
 
-                <Grid item  xs={false} sm={1} md={3} lg={3} xl={3}>
+                <Grid item  xs={false} sm={1} md={2} lg={2} xl={2}>
 
                 </Grid>    
-                <Grid item  xs={12} sm={10} md={6} lg={6} xl={6} >
+                <Grid item  xs={12} sm={10} md={8} lg={8} xl={8} >
 
                             
-                        <DataGrid    /* tabla editable */
+                        <DataGridPro    /* tabla editable */
                             rows={arrayInsumos}
                             columns={columnas}
-                            ref={refGrid} 
-                            //onStateChange={getInsumos} 
+
+                            apiRef={apiRef}  // para interactuar con el dataGrid desde javascript
+
                             
                             checkboxSelection
                             disableSelectionOnClick
@@ -323,7 +471,7 @@ function VerStockInsumos() {
         
                 
                 </Grid>
-                <Grid item  xs={false} sm={1} md={3} lg={3} xl={3}>
+                <Grid item  xs={false} sm={1} md={2} lg={2} xl={2}>
 
                 </Grid>    
 
@@ -353,13 +501,13 @@ function VerStockInsumos() {
                         </Button>   
 
 
-                    <Link style={{ textDecoration: 'none'}} to="/">  
-                        <Button className = {estilos.boton} variant = { 'contained'} color = {"primary"}>
+  
+                        <Button className = {estilos.boton} variant = { 'contained'} color = {"primary"} onClick={imprimirInsumos}>
                             Imprimir
                         </Button>   
-                    </Link> 
 
-                    <Link style={{ textDecoration: 'none'}} to="/">  
+
+                    <Link style={{ textDecoration: 'none'}} to="/principal">  
                         <Button className = {estilos.boton} variant = { 'contained'} color = {"primary"} >
                             Volver
                         </Button>   
@@ -386,7 +534,7 @@ function VerStockInsumos() {
         <Grid container ref = {refModalAgregarFila} className={estilos.modalNuevaFila}>
 
 
-            <Grid item   className={estilos.modalItems} xs={12} sm={4} md={4} lg={4} xl={4}>
+            <Grid item   className={estilos.modalItems} xs={12} sm={3} md={3} lg={3} xl={3}>
 
                 <Typography>Insumo:</Typography>
 
@@ -394,17 +542,24 @@ function VerStockInsumos() {
 
             </Grid>
 
-            <Grid item className={estilos.modalItems} xs={12} sm={4} md={4} lg={4} xl={4}>
+            <Grid item className={estilos.modalItems} xs={12} sm={3} md={3} lg={3} xl={3}>
 
                 <Typography>Cantidad:</Typography>
                 <TextField type="number" InputLabelProps={{ shrink: true, }} defaultValue={0} />
 
             </Grid>
 
-            <Grid item className={estilos.modalItems} xs={12} sm={4} md={4} lg={4} xl={4}>
+            <Grid item className={estilos.modalItems} xs={12} sm={3} md={3} lg={3} xl={3}>
 
                 <Typography>Unidad:</Typography>
                 <TextField> </TextField>
+
+            </Grid>
+
+            <Grid item className={estilos.modalItems} xs={12} sm={3} md={3} lg={3} xl={3}>
+
+                <Typography>Cantidad Limite del Insumo:</Typography>
+                <TextField type="number" InputLabelProps={{ shrink: true, }} defaultValue={0} />
 
             </Grid>
 
@@ -416,6 +571,36 @@ function VerStockInsumos() {
         </Grid>
 
         </Modal>
+
+
+
+
+        {/* CONTENIDO QUE SERA IMPRESO -----------------------------------------------------------------------------------  */}
+
+
+
+       <div  ref={refContenidoAImprimir} className = {estilos.contenidoAImprimir} >
+           {/* los estilos de este div no se veran en la impresion, este div solo sirve para ocultar el contenido a imprimir
+           en el explorador, porque solo debe verse en la impresion de la hoja */}
+
+
+  
+            <div className = {estilos.contenidoAImprimir2}>
+
+                <div className = {estilos.tituloAImprimir}>
+                    
+                    <h2>INSUMOS ORDENADOS ALFABETICAMENTE : </h2>
+                    
+                </div> 
+
+
+
+
+
+
+            </div>
+
+        </div>
 
 
 

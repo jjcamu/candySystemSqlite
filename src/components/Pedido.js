@@ -6,27 +6,25 @@ import { makeStyles} from '@material-ui/core/styles'
 const useStyles = makeStyles({
 
     root: {
-        flexGrow : 1 ,
-        //backgroundColor: 'green'
+
+        display: 'flex',
+        flexDirection: 'column',
 
     },
-    itemSuperior : {
 
-        justifyContent : 'center',
-        //backgroundColor: 'red'
-          
+    tituloDia : {
 
-    },
-    itemInferior : {
-
-        
-
+        display: 'flex',   //reseteo flex para sobreescribir el flexDirection column
+        justifyContent: 'center'
 
     },
-    check : {
-        paddingLeft : '10%',
-        //backgroundColor: 'white'
+    lista:{
+
+        display: 'flex',   //reseteo flex para sobreescribir el flexDirection column
+        justifyContent: 'center'
+
     }
+
 })
 
 
@@ -37,6 +35,14 @@ function Pedido(props) {
 
 
     const estilos = useStyles()
+
+                
+    let fechaPedido = new Date(props.datosDelPedido.dia); 
+    //invierto el string de la fecha, y lo convierto en un dato de tipo fecha 
+    let dia = fechaPedido.getDay(); //obtengo el numero de dia de la semana
+    let semana = ["Lunes", "Martes", "Miercoles" , "Jueves", "Viernes", "Sabado", "Domingo"];
+    var nombreDia = (semana[dia]); //obtengo el nombre del dia de la semana
+    
 
 
 
@@ -57,31 +63,47 @@ function Pedido(props) {
 
                 <Grid container>
 
-                    <Grid item className = {estilos.check} xs={12} sm={3} md={3} lg={3} xl={3} >
-                        {/* checkbox */} 
-                        <Checkbox color="primary" inputProps={{ 'aria-label': 'secondary checkbox' }}/>
+
+
+
+                    <Grid container className = {estilos.tituloDia} >
+
+                        {props.eliminarCheck != true ?  //si la propiedad ingresada 'eliminarCheck' no es true, se imprime el checkbox.
+
+                            <Grid item   >
+                                {/* checkbox */} 
+                                <Checkbox color="primary" inputProps={{ 'aria-label': 'secondary checkbox' }}/>
+
+                            </Grid>
+
+                        : 
+
+                            <Grid item > {/* //si 'eliminarCheck' es true, no se imprimira el checkbox */}
+                                        {/* Grid item vacío.. */}
+                            </Grid>
+                        
+                        }
+
+                        <Grid item  >
+
+
+
+                            <p style={{fontFamily : 'sans-serif', fontSize: 18, fontWeight : 'bold'}}>Pedido del dia :{ " " + nombreDia + " " + (props.datosDelPedido.dia).split("-").reverse().join("-")}</p>
+                            {/* &nbsp; es un espacio en blanco en html */}
+                            {/* '(props.datosDelPedido.dia).split("-").reverse().join("-")' toma la fecha que es un string, y la invierte de 'yyyy-mm-dd' a 'dd-mm-yyyy' */}
+
+                                
+
+                        </Grid>
 
                     </Grid>
 
-                    <Grid item className = {estilos.itemSuperior}  xs={12} sm={9} md={9} lg={9} xl={9}>
 
-                        <p >Pedido de la fecha: {props.datosDelPedido.dia}</p>
-                        
+                    <Grid container className = {estilos.lista} > 
+     
 
-                        
-
-                    </Grid>
-
-
-                    <Grid container item = {true} className = {estilos.itemInferior} xs={12} sm={12} md={12} lg={12} xl={12}> 
-
-                        <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
-                            <p>Cantidad: {props.datosDelPedido.cantidad}</p>
-                        </Grid> 
-
-                        <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
-                            <p>Producto: {props.datosDelPedido.producto}</p>                        
-                        </Grid>       
+                        <h5 style={{fontFamily : 'courier', fontSize: 17}}>{props.datosDelPedido.cantidad + '.'.repeat(60 - ((props.datosDelPedido.producto).length + (props.datosDelPedido.cantidad).length ) ) + props.datosDelPedido.producto}</h5> 
+                              {/* 'string.repeat()' repite una cadena tantas veces como se le indique en su argumento  */}
 
                     </Grid>              
 
@@ -100,21 +122,13 @@ function Pedido(props) {
      
                 <Grid container>
                        
-                    <Grid item>
 
-                        
 
-                    </Grid>
+                    <Grid container className = {estilos.lista}> 
 
-                    <Grid container item = {true} className = {estilos.itemInferior} xs={12} sm={12} md={12} lg={12} xl={12}> 
-
-                        <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
-                            <p>Cantidad: {props.datosDelPedido.cantidad}</p>
-                        </Grid> 
-
-                        <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
-                            <p>Producto: {props.datosDelPedido.producto}</p>                        
-                        </Grid>       
+                        <h5 style={{fontFamily : 'courier', fontSize: 17}}>{props.datosDelPedido.cantidad + '.'.repeat(60 - ((props.datosDelPedido.producto).length + (props.datosDelPedido.cantidad).length ) ) + props.datosDelPedido.producto}</h5> 
+                                {/* 'string.repeat()' repite una cadena tantas veces como se le indique en su argumento  */}
+     
 
                     </Grid>         
 
@@ -123,7 +137,15 @@ function Pedido(props) {
 
             }
 
-            {props.guardarFecha(props.datosDelPedido.dia)}
+            {props.nroPedido == props.pedidosTotales - 1 ?  //si es el ultimo componente pedido iterado
+            
+
+            props.guardarFecha(0)  //pongo la fecha anterior en cero
+
+            :  // si no es el ultimo..
+
+            props.guardarFecha(props.datosDelPedido.dia) //guardo la fecha anterior
+            } 
 
             </Grid>
  

@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';  // para poder enlazar a otras paginas de manera mas fluida desde un button
 import { Grid, Button , Select,  MenuItem, TextField, Modal , Typography} from '@material-ui/core' 
 import { makeStyles} from '@material-ui/core/styles'
-import { DataGrid  } from '@material-ui/data-grid';  // para crear la tabla
+import { DataGridPro, useGridApiRef } from '@mui/x-data-grid-pro';  // para crear la tabla
 import axios from 'axios'  //modulo que me permite acceder a la api
+import Cookies from 'universal-cookie' //para verificar si se ingreso correctamente la contraseña  
 
 
 
@@ -117,7 +118,9 @@ function EditarProductos() {
      
     const estilos = useStyles()
 
-    let refDataGrid = useRef(null);  // referencia al dataGrid
+    const cookies = new Cookies(); 
+
+    const apiRef = useGridApiRef();  // interfaz para interactuar con el dataGrid
 
     let refModalAgregarFila = useRef(null);  //referencia a la ventana modal (cuadro de dialogo) de 'agregar nueva fila'
 
@@ -143,6 +146,11 @@ function EditarProductos() {
                 });
     
             }
+
+            if (!cookies.get('id')){  //si no fue ingresada correctamente la contraseña, osea no se almacenó nada en la cookie 'id'...
+            window.location.href = "/" //se redirigirá automaticamente al 'login'
+            }
+
         }, [arrayConsumos, permitirPeticion])
     //agrego como dependencia a 'permitirPeticion' , para que al setear dicho estado, se active el 'useEffect' y recargue el
     //contenido del dataGrid.
@@ -186,24 +194,29 @@ function EditarProductos() {
 
     const guardarCambios = async (e) => {       /* esta funcion es 'async' , porque vamos a realizar una peticion asincrona */
        
-        let arrayFilasDataGrid = refDataGrid.current.firstElementChild.firstChild.offsetParent.childNodes[1].children[1].children[0].children[0].children[0].children[0].children[0].children
 
+        // guardo el numero total de filas del dataGrid
+        let cantidadFilasDataGrid = apiRef.current.getRowsCount() 
 
-        for (let x = 0; x < arrayFilasDataGrid.length; x++) { // itero todas las filas del dataGrid
+        for (let x = 0; x < cantidadFilasDataGrid; x++) { // itero todas las filas del dataGrid
 
             const nuevosDatos = {  //creo un objeto por cada fila
-                //guardo el contenido de cada celda en la propiedad correspondiente
-                _id: arrayConsumos[x]._id,  //recupero el _id asignado por mongoDB, y que luego guardé en 'arrayConsumos'
-                //esto lo hago para que la fila modificada coincida con la fila original de la BBDD.
+
+                _id: arrayConsumos[x]._id,  //recupero el _id asignado por mongoDB, y que luego guardé en 'arrayConsumos'.
+                //Esto lo hago para que la fila modificada coincida con la fila original de la BBDD.
                 // No confundir este campo '_id' con el campo 'id', que fue creado para poder utilizar el dataGrid.
-                producto: arrayFilasDataGrid[x].children[1].innerText,
-                insumo: arrayFilasDataGrid[x].children[2].innerText,
-                consumoPorTachada: (arrayFilasDataGrid[x].children[3].innerText).replace(/,(?=\d{3})/g, ''), //con el metodo 'replace()'
-                //quito la coma separadora de miles para no tener conflictos con mongoDB, y ademas convierto el string en numero.
-                unidadInsumo: arrayFilasDataGrid[x].children[4].innerText
+
+                producto: apiRef.current.getRow(x).producto, //tomo el valor guardado en la fila 'x' columna 'producto', y lo guardo en la propiedad 'producto'
+                insumo: apiRef.current.getRow(x).insumo,
+                consumoPorTachada: apiRef.current.getRow(x).consumoPorTachada,
+                unidadInsumo: apiRef.current.getRow(x).unidadInsumo,
+
+
             }
-            console.log(nuevosDatos.consumoPorTachada)
+
             
+
+
             await axios.put('http://localhost:4000/api/consumos', nuevosDatos)
 
   
@@ -244,6 +257,34 @@ function EditarProductos() {
         } 
 
     }
+
+
+    /// Eliminar fila seleccionada ----------------------------------------------------------------------------------------------
+
+    const eliminarFila = async (e) => {       /* esta funcion es 'async' , porque vamos a realizar una peticion asincrona */
+        
+        // guardo en un mapa, todas las filas seleccionadas en el dataGrid
+        let filasSeleccionadas = apiRef.current.getSelectedRows()
+
+        for (var [key, value] of filasSeleccionadas) { //recorro las filas seleccionadas
+        //'key' corresponde al numero de fila del dataGrid que fue seleccionada, 
+        //y 'value' es el contenido de la fila en forma de objeto (ej: 'value.nombre' es el dato ingresado en el campo 'nombre')
+
+            //console.log(key + " = " + value.nombre); 
+
+            let _idDeLaFilaAEliminar = arrayConsumos[key]._id
+            //Almaceno el campo '_id' de la fila seleccionada. (tener en cuenta que los indices de los elementos de 'arrayConsumos' 
+            //coinciden con el numero de fila del dataGrid)
+            //(tambien, tener en cuenta que el dataGrid esta mostrando el contenido de 'arrayConsumos', 
+            //el cual a su vez tiene almacenado el campo _id de cada fila).
+
+            axios.delete('http://localhost:4000/api/consumos/' + _idDeLaFilaAEliminar ).then(setPermitirPeticion(true))
+            // elimino el registro con ese _id. (solo puede haber uno)
+            // luego de cumplirse la peticion, actualizo el contenido del dataGrid, invocando a 'setPermitirPeticion()'
+        }
+
+
+   }
 
         
     //agregar nuevo producto a la tabla productos -------------------------------------------------------------------------------
@@ -306,7 +347,13 @@ function EditarProductos() {
           width: 250,
           renderCell: (indice) => (
             <Select key={arrayProductos.indexOf(arrayProductos.find((element) => element.nombre == arrayConsumos[indice.id].producto))}
-            defaultValue={arrayProductos.indexOf(arrayProductos.find((element) => element.nombre == arrayConsumos[indice.id].producto))}>
+            defaultValue={arrayProductos.indexOf(arrayProductos.find((element) => element.nombre == arrayConsumos[indice.id].producto))}
+            name = {(indice.id).toString()} onChange ={actualizarDataGrid}>
+                {/* cada vez que elijo una opcion diferente del select, llamo a la funcion 'actualizarDataGrid'.
+                Por algun motivo que desconozco, cuando cambio el item seleccionado en el select, se visualiza en el dataGrid,
+                pero no se actualiza realmente . Por ese motivo, llamo a la funcion 'actualizarDataGrid'.
+            Guardo en la prop 'name' el numero de fila, para identificar de que fila es el select que emite el evento 'onChange' */}
+            
 {/*     'arrayProductos.find((element) => element.nombre == arrayConsumos[indice.id].producto' busca un elemento en el 'arrayProductos'
     cuyo nombre coincida con el nombre del producto del 'arrayConsumos' , y lo devuelve como resultado.
     Luego 'arrayProductos.indexOf()' muestra el indice correspondiente al elemento devuelto.
@@ -341,11 +388,12 @@ function EditarProductos() {
         },
         {
           field: 'consumoPorTachada',
-          headerName: 'Consumo por tachada',
-          width: 150,
+          headerName: 'Consumo por tachada',  //gasto de insumo por tachada de producto
+          width: 220,
           editable: true,
           type: 'number',
-          valueFormatter: (value) => {
+
+/*           valueFormatter: (value) => {
             if (value == null) {
               return '';
             }
@@ -353,14 +401,14 @@ function EditarProductos() {
             // en la coma utilizada en Estados Unidos como separador de miles, para luego (en el metodo 'guardarCambios')
             // quitar esa coma, ya que desconozco como sacar el punto separador.
             //Todo esto lo hago para no tener conflictos con mongoDB a la hora de trabajar con numeros.
-          }
+          } */
 
 
         },
         {
           field: 'unidadInsumo',//los nombres de los 'fields' DEBEN coincidir con los nombres de los campos del Schema del modelo.
           headerName: 'Unidad',        
-          width: 150,
+          width: 130,
           editable: false,
 
 
@@ -419,21 +467,55 @@ function EditarProductos() {
 
 
 
+  
+
     function mostrarUnidad(e){
         try {  //con try-catch puedo prevenir errores por alguna variable 'undefined'
             
             
-            let unidad = arrayInsumos[e.target.value].unidad  //tomo la unidad correspondiente al insumo elegido en el select
-            refDataGrid.current.firstElementChild.firstChild.offsetParent.childNodes[1].children[1].children[0].children[0].children[0].children[0].children[0].children[parseInt(e.target.name)].children[4].innerText = unidad
-            //almaceno en la celda del DataGrid ,cuya fila corresponde a la del select que emitió el evento, 
-            //la unidad correspondiente al insumo elegido en el select
+            let unidad = arrayInsumos[e.target.value].unidad  //tomo la unidad correspondiente al insumo elegido en el select.
+            //'e.target.value' devuelve el numero de fila del insumo seleccionado en el select
+
+            apiRef.current.updateRows([{ 
+                id: parseInt(e.target.name), 
+
+                 
+                insumo: arrayInsumos[e.target.value].nombre,     
+
+                unidadInsumo: unidad 
+
+            }]);
+            //'updateRows()' actualiza la fila del dataGrid. En la propiedad 'id' indico el 'id' de la fila a actualizar, y en
+            //'unidadInsumo' guardo el nuevo dato, que en este caso será la unidad correspondiente 
+            //al insumo elegido en el select de la misma fila.
+            //'e.target.name' devuelve el numero de fila del dataGrid donde se originó el evento.
+            
 
           } catch { //si existe alguna variable indefinida (ej : debido a la demora de la resolucion de una promesa),
             //el programa no se detiene por el error, sino que envio un mensaje por consola.
             console.log("variable no definidas");
+
           }
 
     }
+
+
+    function actualizarDataGrid(e){
+/*      cada vez que elijo una opcion diferente del select, llamo a la funcion 'actualizarDataGrid'.
+        Por algun motivo que desconozco, cuando cambio el item seleccionado en el select, se visualiza en el dataGrid,
+        pero no se actualiza realmente . Por ese motivo, llamo a la funcion 'actualizarDataGrid'. */
+
+        apiRef.current.updateRows([{ 
+
+            id: parseInt(e.target.name), 
+    
+            producto: arrayProductos[e.target.value].nombre
+        }]);
+
+
+    }
+
+
 
 
 
@@ -460,10 +542,11 @@ function EditarProductos() {
 
 
 
-                        <DataGrid    /* tabla editable */
+                        <DataGridPro    /* tabla editable */
                             rows={arrayConsumos}
                             columns={columnas}
-                            ref={refDataGrid} 
+                            apiRef={apiRef}  // para interactuar con el dataGrid desde javascript
+
 
                             checkboxSelection
                             disableSelectionOnClick
@@ -495,11 +578,10 @@ function EditarProductos() {
                                 </Button>
 
 
-                        <Link style={{ textDecoration: 'none' }} to="/">
-                            <Button className={estilos.boton} variant={'contained'} color={"primary"}>
+                            <Button className={estilos.boton} variant={'contained'} color={"primary"} onClick={eliminarFila}>
                                 Eliminar Fila Seleccionada
                                 </Button>
-                        </Link>
+
 
                         <Button className={estilos.boton} variant={'contained'} color={"primary"} onClick={nuevoProducto}>
                             Agregar Nuevo Producto
@@ -510,13 +592,7 @@ function EditarProductos() {
                         </Button>
 
 
-                        <Link style={{ textDecoration: 'none' }} to="/">
-                            <Button className={estilos.boton} variant={'contained'} color={"primary"}>
-                                Imprimir
-                                </Button>
-                        </Link>
-
-                        <Link style={{ textDecoration: 'none' }} to="/">
+                        <Link style={{ textDecoration: 'none' }} to="/principal">
                             <Button className={estilos.boton} variant={'contained'} color={"primary"}>
                                 Volver
                                 </Button>

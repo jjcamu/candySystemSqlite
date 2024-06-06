@@ -4,18 +4,20 @@
 import React from 'react';
 import {BrowserRouter, Switch, Route} from 'react-router-dom';
 
-
+import Login from '../pages/Login';
 import Principal from '../pages/Principal';
 import RealizarPedido from '../pages/RealizarPedido'
 import VerStockInsumos from '../pages/VerStockInsumos'
 import VerPedidos from '../pages/VerPedidos'
 import EditarProductos from '../pages/EditarProductos'
 
+
 function Router() {
   return (
     <BrowserRouter>
     <Switch>
-      <Route exact path='/' component={Principal}/> {/* importante no olvidar de colocar la propiedad 'exact' !! */}
+      <Route exact path='/' component={Login}/> {/* importante no olvidar de colocar la propiedad 'exact' !! */}
+      <Route path='/principal' component={Principal}/>
       <Route path='/realizarPedido' component={RealizarPedido}/>
       <Route path='/verStockInsumos' component={VerStockInsumos}/>
       <Route path='/verPedidos' component={VerPedidos}/>

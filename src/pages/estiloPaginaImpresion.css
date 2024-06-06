@@ -1,0 +1,12 @@
+
+/* aplicando este estilo (unicamente lo puedo hacer desde un css externo)
+cambio la disposicion de la pagina de impresion, para que me imprima correctamente los 
+componentes Grid de material ui  */
+
+
+@page {  /* pagina de impresion */
+
+     size: landscape;   /* disposicion horizontal */
+
+}
+

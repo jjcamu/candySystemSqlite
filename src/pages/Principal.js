@@ -1,16 +1,15 @@
 //// Pagina principal.
-
+// Sistema para el Control de Stock de Insumos Candy System - creado por Juan Jose Camussi 2024
 
 
 
 /// Primero : Importamos todos los elementos que vamos a utilizar
 
-import React from 'react';
+import React, {  useEffect } from 'react';
 import { Link } from 'react-router-dom';  // para poder enlazar a otras paginas de manera mas fluida desde un button
 import {Grid, Button} from '@material-ui/core' //Grid : para organizar los elementos en la pantalla
 import {makeStyles} from '@material-ui/core/styles' // para personalizar los estilos de un elemento
-
-
+import Cookies from 'universal-cookie' //para verificar si se ingreso correctamente la contraseña  
 
 /// Segundo : Definimos los estilos
 
@@ -76,6 +75,31 @@ function Principal() {  //Definimos el componente funcional 'Principal'
 
     const estilos = useStyles()
 
+    const cookies = new Cookies(); // creo un objeto Cookies
+
+
+    useEffect(() => { // este metodo se ejecuta en el primer renderizado del componente
+
+        if (!cookies.get('id')){  //si no fue ingresada correctamente la contraseña, osea no se almacenó nada en la cookie 'id'...
+            window.location.href = "/" //se redirigirá automaticamente al 'login'
+        }
+
+      }, []);
+
+
+
+    function eliminarCookiesYSalir(){  //cerrar sesion
+
+        cookies.remove('id' , {path : '/'}) //borro las cookies (variables de sesion), para no permitir el ingreso al sistema
+        // sin la contraseña correcta.
+
+        window.location.href = '/' //redirecciono a la pagina del login
+
+
+    }
+    
+
+
     return (
         <div className={estilos.root}>  {/* aplico el estilo en este elemento html */}
             <Grid container className={estilos.contenedorSuperior}>   {/* creamos un grid contenedor */}
@@ -86,7 +110,7 @@ function Principal() {  //Definimos el componente funcional 'Principal'
                 <Grid item className={estilos.contenedorImagen} xs={12} sm={8} md={8} lg={8} xl={8} >
 
  
-                     <img src={require('../assets/img/candysystem_logo2.png')} className={estilos.imagen}    alt={''} />  
+                     <img src={require('../assets/img/candysystem_logo3.png')} className={estilos.imagen}    alt={''} />  
 
                   
                 </Grid>
@@ -124,11 +148,9 @@ function Principal() {  //Definimos el componente funcional 'Principal'
                         </Button>   
                     </Link> 
 
-                    <Link  style={{ textDecoration: 'none' }} to="/">  
-                        <Button  className = {estilos.boton} variant = { 'contained'} color = {"primary"}>
-                            Salir
-                        </Button>   
-                    </Link> 
+                    <Button  className = {estilos.boton} variant = { 'contained'} color = {"primary"} onClick={eliminarCookiesYSalir}>
+                        Salir
+                    </Button>  
 
                             
 

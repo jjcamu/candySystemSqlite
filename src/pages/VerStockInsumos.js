@@ -11,7 +11,11 @@ import ReactDOM from 'react-dom';
 import Router from '../routes/Router';
 
 
-const useStyles = makeStyles({
+var useStyles
+
+if (window.innerWidth > 700){  //si la pantalla del dispositivo es mayor a 700 (por ej: una PC)
+
+    useStyles = makeStyles({
 
     root: {
         flexGrow : 1 ,
@@ -20,11 +24,18 @@ const useStyles = makeStyles({
         
         
     },
-    containerSuperior : {//grid container que contiene 3 grid items, de los cuales 2 sirven para centrar el grid item de la tabla.
+    containerSuperior : {
 
    
-        height : '70%'             
+        height : '70%',   
+        display : 'flex',
+        justifyContent: 'center',        
+        width : '100%'
 
+    },
+    dataGrid:{
+
+        minWidth: '60%'
     },
     containerInferior : {  //grid container que contiene a su vez el grid container de los botones.
     
@@ -105,6 +116,118 @@ const useStyles = makeStyles({
     },
 
 })
+}else{
+
+    useStyles = makeStyles({
+
+        root: {
+
+            backgroundColor : 'gray',
+            height: '95vh',  //que ocupe casi todo el alto de la pantalla
+            
+            
+        },
+        containerSuperior : {
+
+   
+            height : '60%',   
+            display : 'flex',
+            justifyContent: 'center',        
+            width : '100%',
+            
+        },
+        dataGrid:{
+            //scale: '0.5',
+            //minWidth: '1400px',
+            minWidth: '100%',
+
+        },
+        containerInferior : {  //grid container que contiene a su vez el grid container de los botones.
+        
+            height : '40%',
+            alignItems : 'center',
+    
+    
+        },
+        containerBotones: { // grid container que contiene a los botones.
+    
+            display : 'flex',
+            flexDirection : 'column',
+            alignItems: 'center', 
+            justifyContent : 'space-around'
+
+            
+        },
+        boton: {  // cada boton individual
+            height : '80%',  //todos los botones tendran el alto del container padre, (del container botones)
+            width : '200px', // establezco el mismo ancho para todos los botones (colocar la abreviacion 'px' !!)
+            margin: '5px',
+
+            
+        },
+        containerModal : { // estos estilos se aplican al componente 'Modal' , que en realidad es el contenedor de la ventana.
+    
+    
+            display : 'flex', //aplico flexbox
+            width : '100%',  //el contenedor de la ventana ocupará todo el ancho y el alto de la pantalla
+            height : '100%',
+            justifyContent: 'center',  // la ventana quedará centrada vertical y horizontalmente dentro de su contenedor
+            alignItems : 'center'
+    
+        },
+        modalNuevaFila : {
+    
+            flexGrow : 1 ,
+            justifyContent: 'center',  // centrar los elementos que estan dentro de la ventana
+            width : 1000 ,  //ancho de la ventana
+            backgroundColor : 'white', //color de fondo
+            border : '2px solid #000',  //borde
+            boxShadow : '10px 5px 5px black',  //sombreado
+            padding : '16px 32px 24px 32px',  //margen interior
+    
+        },
+        modalItems : {
+            
+            paddingBottom : 20,
+            textAlign : 'center',
+            //minWidth : '100%'
+    
+        
+    
+        },
+        modalBotones : {
+            display : 'flex',  //para que haga efecto el 'justify-content'
+            justifyContent : 'space-evenly',
+            //backgroundColor : 'green',
+    
+        },
+        contenidoAImprimir:{  //estilo del div contenedor de la hoja a imprimir, para que no sea visible en el navegador.
+    
+            display: 'none',  //invisible
+           
+     
+     
+        },
+        contenidoAImprimir2: {  // estilos de la hoja a imprimir -------------------------------------------------------------
+    
+            display: 'flex',
+            flexDirection: 'column', 
+            //transform: 'rotate(270deg)',  //rotar el 'div', para no tener que rotar la hoja a imprimir
+            //padding : '100px'
+    
+        },
+        tituloAImprimir: {
+    
+            textAlign: 'center',  //titulo centrado
+    
+    
+        },
+    
+    })
+
+
+
+}
 
 
 function VerStockInsumos() {
@@ -184,7 +307,7 @@ function VerStockInsumos() {
             }
 
             if (!cookies.get('id')){  //si no fue ingresada correctamente la contraseña, osea no se almacenó nada en la cookie 'id'...
-            window.location.href = "/" //se redirigirá automaticamente al 'login'
+                window.location.href = "/" //se redirigirá automaticamente al 'login'
             }
              
         }, [permitirPeticion, hojaAImprimir]) //cada vez que cambie el estado de la bandera, se llamará a 'useEffect'
@@ -193,7 +316,7 @@ function VerStockInsumos() {
         function mostrarInsumos() { 
     
     
-            axios.get('http://localhost:4000/api/insumos').then(res => {
+            axios.get(cookies.get('urlApi') + '/api/insumos').then(res => {
 
                 res.data.map((row, index) => row["id"] = index) //guardo en el campo 'id' de todas las filas, el indice .
                 //Esto lo hago para que las filas queden enumeradas, y pueda utilizarse en el dataGrid.
@@ -242,7 +365,7 @@ function VerStockInsumos() {
                 
             }
 
-            await axios.put('http://localhost:4000/api/insumos', nuevosDatos)
+            await axios.put(cookies.get('urlApi') + '/api/insumos', nuevosDatos)
 
   
 
@@ -266,7 +389,7 @@ function VerStockInsumos() {
                 limite : refModalAgregarFila.current.children[3].children[1].children[0].children[0].value,
             }
             
-            await axios.post('http://localhost:4000/api/insumos', nuevoInsumo)
+            await axios.post(cookies.get('urlApi') + '/api/insumos', nuevoInsumo)
 
             setVentanaNuevaFila(!ventanaNuevaFila) // cierro la ventana modal seteando el estado 'ventanaNuevaFila'
 
@@ -309,7 +432,7 @@ function VerStockInsumos() {
             //Decidí eliminar el insumo segun su _id, ya que en la tabla insumos pueden repetirse los nombres de los insumos
             //en mas de una fila, pero nunca se repite el valor del campo _id.
 
-            axios.delete('http://localhost:4000/api/insumos/' + _idDelInsumoAEliminar).then(setPermitirPeticion(true))
+            axios.delete(cookies.get('urlApi') + '/api/insumos/' + _idDelInsumoAEliminar).then(setPermitirPeticion(true))
             // elimino el registro con ese _id. (solo puede haber uno)
             // luego de cumplirse la peticion, actualizo el contenido del dataGrid, invocando a 'setPermitirPeticion()'
         }
@@ -450,13 +573,12 @@ function VerStockInsumos() {
             <Grid container className = {estilos.containerSuperior}>
 
 
-                <Grid item  xs={false} sm={1} md={2} lg={2} xl={2}>
 
-                </Grid>    
-                <Grid item  xs={12} sm={10} md={8} lg={8} xl={8} >
+                <Grid item className = {estilos.dataGrid}  >
 
                             
                         <DataGridPro    /* tabla editable */
+                            
                             rows={arrayInsumos}
                             columns={columnas}
 
@@ -471,9 +593,7 @@ function VerStockInsumos() {
         
                 
                 </Grid>
-                <Grid item  xs={false} sm={1} md={2} lg={2} xl={2}>
-
-                </Grid>    
+ 
 
             </Grid>
 

@@ -2,54 +2,86 @@ import React, { useEffect, useState  }  from 'react';
 import { Grid,  Select,  MenuItem } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles' // para personalizar los estilos de un elemento
 import axios from 'axios'  //modulo que me permite acceder a la api
+import Cookies from 'universal-cookie' //para verificar si se ingreso correctamente la contraseña  
 
 
+var useStyles
+
+if (window.innerWidth > 700){  //si la pantalla del dispositivo es mayor a 700 (por ej: una PC)
+
+    useStyles = makeStyles({
 
 
+        root: {
 
-const useStyles = makeStyles({
+            padding : 10,
 
+        },
 
-    root: {
-        flexGrow: 1,
-        padding : 10,
-        
-    },
+        select1: {
 
-    select1: {
+            minWidth: '50%',
+            backgroundColor: 'white'
+        },
 
-        minWidth: '50%',
-        backgroundColor: 'white'
-    },
+        select2: {
 
-    select2: {
+            minWidth: '100%',
+            backgroundColor: 'white'
+        },
 
-        minWidth: '100%',
-        backgroundColor: 'white'
-    },
+        gridItem1: {
+            display: 'flex',
+            justifyContent : 'center',           
+            width : '50%'
+            
+        },
 
-    gridItem1: {
-        /* backgroundColor : 'green' */
-        justifyContent : 'center'
-    },
+        gridItem2: {
 
-    gridItem2: {
-        /* backgroundColor : 'green' */
-        paddingRight : 50
-    },
+            paddingRight : 50,           
+            width : '50%'
+        },
 
+    })
 
+}else {
 
+    useStyles = makeStyles({
 
-})
+        select1: {
+
+            minWidth: '100%',
+            scale: '0.8',
+            backgroundColor: 'white'
+        },
+
+        select2: {
+
+            minWidth: '100%',
+            scale: '0.8',
+            backgroundColor: 'white'
+        },
+
+        gridItem1: {
+
+            width : '35%'
+        },
+
+        gridItem2: {
+            width : '65%'
+        },
+
+    })
+
+}
 
 function Cargada() {
 
 
     const estilos = useStyles()
 
-    
-
+    const cookies = new Cookies();
 
     // logica para mostrar los productos en los select ------------------------------------------------------------------
 
@@ -58,7 +90,7 @@ function Cargada() {
     useEffect(() => {
 
         const getProductos = async() => {
-            const res = await axios.get('http://localhost:4000/api/productos')
+            const res = await axios.get(cookies.get('urlApi') + '/api/productos')
 
             setArrayProductos(res.data)
             
@@ -85,9 +117,9 @@ function Cargada() {
         <div className={estilos.root}>
 
 
-            <Grid container>
+            <Grid container className={estilos.container}>
 
-                <Grid container className={estilos.gridItem1} item={true} xs={6} sm={6} md={6} lg={6} xl={6} >
+                <Grid item className={estilos.gridItem1}  >
 
                     <Select className={estilos.select1} variant="outlined"  defaultValue=""  >
                         <MenuItem value={0.3}>1 tachada</MenuItem>
@@ -102,7 +134,7 @@ function Cargada() {
                 </Grid>
 
 
-                <Grid item className={estilos.gridItem2} xs={6} sm={6} md={6} lg={6} xl={6}>
+                <Grid item className={estilos.gridItem2}>
 
 
                     <Select className={estilos.select2} variant="outlined"  defaultValue=""  >

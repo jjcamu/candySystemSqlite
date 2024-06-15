@@ -3,12 +3,17 @@ import { Grid, Button, Checkbox  } from '@material-ui/core'
 import { makeStyles} from '@material-ui/core/styles'
 
 
-const useStyles = makeStyles({
+var useStyles
+
+if (window.innerWidth > 700){  //si la pantalla del dispositivo es mayor a 700 (por ej: una PC)
+
+    useStyles = makeStyles({
 
     root: {
 
         display: 'flex',
         flexDirection: 'column',
+        
 
     },
 
@@ -21,11 +26,44 @@ const useStyles = makeStyles({
     lista:{
 
         display: 'flex',   //reseteo flex para sobreescribir el flexDirection column
-        justifyContent: 'center'
+        justifyContent: 'center',
+        
 
-    }
+    },
+
 
 })
+}else{
+
+    useStyles = makeStyles({
+
+        root: {
+    
+            display: 'flex',
+            scale: '0.5',
+            flexDirection: 'column',
+            width: '600px'
+            
+    
+        },
+    
+        tituloDia : {
+    
+            display: 'flex',   //reseteo flex para sobreescribir el flexDirection column
+            justifyContent: 'center'
+    
+        },
+        lista:{
+    
+            display: 'flex',   //reseteo flex para sobreescribir el flexDirection column
+            justifyContent: 'center',
+            
+    
+        },
+    
+    
+    })
+}
 
 
 
@@ -102,7 +140,7 @@ function Pedido(props) {
                     <Grid container className = {estilos.lista} > 
      
 
-                        <h5 style={{fontFamily : 'courier', fontSize: 17}}>{props.datosDelPedido.cantidad + '.'.repeat(60 - ((props.datosDelPedido.producto).length + (props.datosDelPedido.cantidad).length ) ) + props.datosDelPedido.producto}</h5> 
+                        <h5 style={{fontFamily : 'courier', fontSize: 17}} >{props.datosDelPedido.cantidad + '.'.repeat(60 - ((props.datosDelPedido.producto).length + (props.datosDelPedido.cantidad).length ) ) + props.datosDelPedido.producto}</h5> 
                               {/* 'string.repeat()' repite una cadena tantas veces como se le indique en su argumento  */}
 
                     </Grid>              

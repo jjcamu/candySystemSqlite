@@ -18,7 +18,11 @@ import './estiloPaginaImpresion.css';
 import Pedido from '../components/Pedido'
 
 
-const useStyles = makeStyles({
+var useStyles
+
+if (window.innerWidth > 700){  //si la pantalla del dispositivo es mayor a 700 (por ej: una PC)
+
+    useStyles = makeStyles({
     root: {
 
         backgroundColor : 'gray',
@@ -90,6 +94,91 @@ const useStyles = makeStyles({
    },
 
 })
+}
+else{
+
+    useStyles = makeStyles({
+        root: {
+    
+            backgroundColor : 'gray',
+            height: '95vh',  //que ocupe casi todo el alto de la pantalla
+    
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems : 'center'
+            
+        },
+        containerSuperior : {
+    
+            
+            height : '60%' ,   
+            justifyContent : 'center',  
+            overflowY : 'scroll'  //si el contenido sobrepasa (overflow) el limite inferior de su contenedor, se crea una scroll bar.
+    
+        },
+        containerInferior : {  //grid container que contiene a su vez el grid container de los botones.
+        
+            height : '40%',
+            alignItems : 'center',
+    
+    
+        },
+        containerBotones: { // grid container que contiene a los botones.
+    
+            display : 'flex',
+            flexDirection : 'column',
+            alignItems: 'center', 
+            justifyContent : 'space-around'
+
+            
+        },
+        boton: {  // cada boton individual
+            height : '100%',  //todos los botones tendran el alto del container padre, (del container botones)
+            width : '200px', // establezco el mismo ancho para todos los botones (colocar la abreviacion 'px' !!)
+            margin: '10px',
+
+            
+    
+        },
+        contenidoAImprimir:{  //estilo del div contenedor de la hoja a imprimir, para que no sea visible en el navegador.
+    
+           display: 'none',  //invisible
+          
+    
+    
+        },
+    
+        contenidoAImprimir2:{  // estilos de la hoja a imprimir -------------------------------------------------------------
+     
+            display: 'flex',
+            flexDirection: 'column', //un container encima del otro
+    
+    
+       },
+       tituloAImprimir:{
+    
+            textAlign: 'center',  //titulo centrado
+    
+    
+       },
+       tituloAImprimir2:{
+    
+           display: 'flex',   //reseteo flex para sobreescribir el flexDirection column
+           justifyContent: 'space-around',  //distribuyo horizontalmente los subtitulos
+    
+    
+      },
+       listaAImprimir :{
+           textAlign: 'center'  // centrar la lista
+            
+       },
+    
+    })
+
+
+
+
+}
 
 
 
@@ -147,9 +236,9 @@ function VerPedidos() {
 
         }
 
-        if (!cookies.get('id')){  //si no fue ingresada correctamente la contraseña, osea no se almacenó nada en la cookie 'id'...
-        window.location.href = "/" //se redirigirá automaticamente al 'login'
-        }
+         if (!cookies.get('id')){  //si no fue ingresada correctamente la contraseña, osea no se almacenó nada en la cookie 'id'...
+            window.location.href = "/" //se redirigirá automaticamente al 'login'
+        } 
          
     }, [permitirPeticion]) //cada vez que cambie el estado de la bandera, se llamará a 'useEffect'
 
@@ -157,13 +246,13 @@ function VerPedidos() {
     function mostrarPedidos() { 
 
 
-        axios.get('http://localhost:4000/api/pedidos').then(res => {
+        axios.get(cookies.get('urlApi') + '/api/pedidos').then(res => {
                
             setArrayPedidos(res.data)
 
-        });
+        }); 
 
-    
+
 
     }
     
@@ -193,7 +282,7 @@ function VerPedidos() {
                     // elemento del arrayPedidos, asi que de este ultimo obtengo el dia)
 
 
-                    axios.delete('http://localhost:4000/api/pedidos/' + fechaDelPedidoAEliminar).then(setPermitirPeticion(true))
+                    axios.delete(cookies.get('urlApi') + '/api/pedidos/' + fechaDelPedidoAEliminar).then(setPermitirPeticion(true))
                     // elimino los registros con esa fecha. La fecha es enviada a la api concatenadola a la url, osea como un parametro.
                     //mostrarPedidos()  
                     
@@ -228,7 +317,7 @@ function VerPedidos() {
                    // elemento del arrayPedidos, asi que de este ultimo obtengo el dia)
 
 
-                   axios.delete('http://localhost:4000/api/pedidos/cancelar/' + fechaDelPedidoACancelar).then(setPermitirPeticion(true))
+                   axios.delete(cookies.get('urlApi') + '/api/pedidos/cancelar/' + fechaDelPedidoACancelar).then(setPermitirPeticion(true))
                    // cancelo los registros con esa fecha. La fecha es enviada a la api concatenadola a la url, osea como un parametro.
                    // Ademas, se devuelven al stock , los insumos gastados por el pedido realizado.
                   
@@ -280,12 +369,9 @@ function VerPedidos() {
             <Grid container className = {estilos.containerSuperior}>
 
 
-                <Grid item  xs={false} sm={2} md={2} lg={2} xl={2} >
 
 
-                </Grid>
-
-                <Grid item ref={containerDePedidos}  xs={12} sm={8} md={8} lg={8} xl={8} >
+                <Grid item ref={containerDePedidos}  >
                     
 
                     {limpiarVariableFechaAnterior()}
@@ -313,10 +399,7 @@ function VerPedidos() {
 
                 </Grid>    
 
-                <Grid item  xs={false} sm={2} md={2} lg={2} xl={2} >
 
-
-                </Grid>
 
 
 

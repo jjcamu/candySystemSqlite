@@ -13,57 +13,110 @@ import Cookies from 'universal-cookie' //para verificar si se ingreso correctame
 
 /// Segundo : Definimos los estilos
 
-const useStyles = makeStyles({
-    root : {
-        flexGrow : 1  // flex-grow en 1, el espacio del contenedor se distribuirá de manera uniforme entre todos los items.
-        // Si uno de los ítems tiene el valor 2, ocupará el doble de espacio que los demás items.
-      ,
-        backgroundColor: 'gray',
-        height: '95vh'  //que ocupe casi todo el alto de la pantalla (100vh sería todo el alto)
-        
-    },
-    contenedorSuperior :{  //aca defino los estilos para el grid container (contenedor padre, el que contiene a los items)
-        display : 'flex', //aplico flexbox
-        justifyContent : 'center', // para que esta propiedad de flexbox tenga efecto, debe definirse en el contenedor padre
-        height: '70%',  // que ocupe el x % de la altura del elemento padre (que en este caso es un elemento div)
 
-    },
-    containerInferior : {  //grid container que contiene a su vez el grid container de los botones.
+var useStyles
+
+if (window.innerWidth > 700){  //si la pantalla del dispositivo es mayor a 700 (por ej: una PC)
+
+    useStyles = makeStyles({
+        root : {
+            flexGrow : 1  // flex-grow en 1, el espacio del contenedor se distribuirá de manera uniforme entre todos los items.
+            // Si uno de los ítems tiene el valor 2, ocupará el doble de espacio que los demás items.
+          ,
+            backgroundColor: 'gray',
+            height: '95vh'  //que ocupe casi todo el alto de la pantalla (100vh sería todo el alto)
+            
+        },
+        contenedorSuperior :{  //aca defino los estilos para el grid container (contenedor padre, el que contiene a los items)
+            display : 'flex', //aplico flexbox
+            justifyContent : 'center', // para que esta propiedad de flexbox tenga efecto, debe definirse en el contenedor padre
+            height: '70%',  // que ocupe el x % de la altura del elemento padre (que en este caso es un elemento div)
     
-        height : '30%',
-        alignItems : 'center',
-
-
-    },
-    containerBotones: { // grid container que contiene a los botones.
-
-        height : '60%',
-        justifyContent : 'space-around',  // distribuyo a los botones en el eje horizontal de la pantalla
+        },
+        containerInferior : {  //grid container que contiene a su vez el grid container de los botones.
         
-    },
-    boton: {  // cada boton individual
-        height : '100%',  //todos los botones tendran el alto del container padre, (del container botones)
+            height : '30%',
+            alignItems : 'center',
+        },
+        containerBotones: { // grid container que contiene a los botones.
+    
+            height : '60%',
+            justifyContent : 'space-around',  // distribuyo a los botones en el eje horizontal de la pantalla
+            
+        },
+        boton: {  // cada boton individual
+            height : '100%',  //todos los botones tendran el alto del container padre, (del container botones)
+            width : '200px', // establezco el mismo ancho para todos los botones (colocar la abreviacion 'px' !!)
+    
+        },
+        contenedorImagen:{
+            //width : '60%',
+            height : '80vh',
+            //backgroundColor: 'green'
+        },
+        imagen:{
+            width : '100%',
+            //height : '100%'
+        }
+    
+    })
 
-        width : '200px', // establezco el mismo ancho para todos los botones (colocar la abreviacion 'px' !!)
+
+}else{ //si la pantalla del dispositivo es menor a 500 (por ej: un celular)
 
 
+    useStyles = makeStyles({
+        root : {
 
+            backgroundColor: 'gray',
+            height: '95vh'  //que ocupe casi todo el alto de la pantalla (100vh sería todo el alto)
+            
+        },
+        contenedorSuperior :{  //aca defino los estilos para el grid container (contenedor padre, el que contiene a los items)
+            display : 'flex', //aplico flexbox
+            justifyContent : 'center', // para que esta propiedad de flexbox tenga efecto, debe definirse en el contenedor padre
+            height: '30%',  //---- que ocupe el x % de la altura del elemento padre (que en este caso es un elemento div)
+    
+        },
+        containerInferior : {  //grid container que contiene a su vez el grid container de los botones.
         
-    },
-    contenedorImagen:{
-        //width : '60%',
-        height : '80vh',
-        //backgroundColor: 'green'
-    },
-    imagen:{
-        width : '100%',
-        //height : '100%'
-    }
+
+            height : '70%', //----
+            
+
+        },
+        containerBotones: { // grid container que contiene a los botones.
+    
+            display : 'flex',
+            flexDirection : 'column',
+            alignItems: 'center', 
+            justifyContent : 'space-around'
+
+            
+        },
+        boton: {  // cada boton individual
+            height : '100%',  //todos los botones tendran el alto del container padre, (del container botones)
+            width : '200px', // establezco el mismo ancho para todos los botones (colocar la abreviacion 'px' !!)
+            padding: '20px',
+
+            
+    
+        },
+        contenedorImagen:{
+
+        },
+        imagen:{
+            width : '100%',
+            //height : '100%'
+        }
+    
+    })
+
+
+}
 
 
 
-
-})
 
 
 
@@ -124,33 +177,45 @@ function Principal() {  //Definimos el componente funcional 'Principal'
             <Grid container className = {estilos.containerInferior} >
 
                 <Grid container className = {estilos.containerBotones} >
+
+                <div>
                     <Link  style={{ textDecoration: 'none'}} to="/realizarPedido">  
                         <Button  className = {estilos.boton} variant = { 'contained'} color = {"primary"}>
                             Realizar Pedido
                         </Button>   
                     </Link> 
+                </div>
 
+                <div>
                     <Link style={{ textDecoration: 'none'}} to="/verPedidos">  
                         <Button className = {estilos.boton} variant = { 'contained'} color = {"primary"}>
                             Ver Pedidos
                         </Button>   
                     </Link> 
+                </div>
 
+                <div>
                     <Link style={{ textDecoration: 'none'}} to="/verStockInsumos">  
                         <Button className = {estilos.boton} variant = { 'contained'} color = {"primary"}>
                             Ver Stock Insumos
                         </Button>   
                     </Link> 
+                </div>
 
+                <div>
                     <Link  style={{ textDecoration: 'none' }} to="/editarProductos">  
                         <Button  className = {estilos.boton} variant = { 'contained'} color = {"primary"}>
                             Editar Productos y Consumos
                         </Button>   
                     </Link> 
+                </div>
+                    
+                    <div>
+                        <Button  className = {estilos.boton} variant = { 'contained'} color = {"primary"} onClick={eliminarCookiesYSalir}>
+                            Salir
+                        </Button>  
+                    </div>
 
-                    <Button  className = {estilos.boton} variant = { 'contained'} color = {"primary"} onClick={eliminarCookiesYSalir}>
-                        Salir
-                    </Button>  
 
                             
 

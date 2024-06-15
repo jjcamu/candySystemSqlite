@@ -7,10 +7,11 @@ import axios from 'axios'  //modulo que me permite acceder a la api
 import Cookies from 'universal-cookie' //para verificar si se ingreso correctamente la contraseña  
 
 
+var useStyles
 
+if (window.innerWidth > 700){  //si la pantalla del dispositivo es mayor a 700 (por ej: una PC)
 
-
-const useStyles = makeStyles({
+    useStyles = makeStyles({
 
     root: {
         flexGrow : 1 ,
@@ -19,11 +20,18 @@ const useStyles = makeStyles({
         
 
     },
-    containerSuperior : {//grid container que contiene 3 grid items, de los cuales 2 sirven para centrar el grid item de la tabla.
+    containerSuperior : {
 
    
-        height : '70%'             
+        height : '70%',   
+        display : 'flex',
+        justifyContent: 'center',        
+        width : '100%'
 
+    },
+    dataGrid:{
+
+        minWidth: '80%'
     },
     containerInferior : {  //grid container que contiene a su vez el grid container de los botones.
     
@@ -110,6 +118,123 @@ const useStyles = makeStyles({
 
 
 })
+}else{
+
+    useStyles = makeStyles({
+
+        root: {
+
+            backgroundColor : 'gray',
+            height: '95vh',  //que ocupe casi todo el alto de la pantalla
+            
+    
+        },
+        containerSuperior : {
+
+            
+            height : '50%',   
+            display : 'flex',
+            justifyContent: 'center',        
+            width : '100%',
+
+  
+            
+        },
+        dataGrid:{
+            
+            minWidth: '100%',
+
+        },
+        containerInferior : {  //grid container que contiene a su vez el grid container de los botones.
+        
+            height : '50%',
+            alignItems : 'center',
+    
+    
+        },
+        containerBotones: { // grid container que contiene a los botones.
+    
+            display : 'flex',
+            flexDirection : 'column',
+            alignItems: 'center', 
+            justifyContent : 'space-around'
+
+            
+        },
+        boton: {  // cada boton individual
+            height : '80%',  //todos los botones tendran el alto del container padre, (del container botones)
+            width : '200px', // establezco el mismo ancho para todos los botones (colocar la abreviacion 'px' !!)
+            margin: '5px',
+
+        },
+    
+    
+        containerModal : { // estos estilos se aplican al componente 'Modal' , que en realidad es el contenedor de la ventana.
+    
+    
+            display : 'flex', //aplico flexbox
+            width : '100%',  //el contenedor de la ventana ocupará todo el ancho y el alto de la pantalla
+            height : '100%',
+            justifyContent: 'center',  // la ventana quedará centrada vertical y horizontalmente dentro de su contenedor
+            alignItems : 'center'
+    
+        },
+    
+        modal : {  // estilos de la ventana emergente
+    
+    
+            justifyContent: 'center',  // centrar los elementos que estan dentro de la ventana
+            width : 400 ,  //ancho de la ventana
+            backgroundColor : 'white', //color de fondo
+            border : '2px solid #000',  //borde
+            boxShadow : '10px 5px 5px black',  //sombreado
+            padding : '16px 32px 24px 32px',  //margen interior
+    
+        },
+        modalTextfield : {
+            width : '100%',
+            paddingBottom : 10
+    
+    
+        },
+        modalNuevaFila : {
+    
+            flexGrow : 1 ,
+            justifyContent: 'center',  // centrar los elementos que estan dentro de la ventana
+            width : 1000 ,  //ancho de la ventana
+            backgroundColor : 'white', //color de fondo
+            border : '2px solid #000',  //borde
+            boxShadow : '10px 5px 5px black',  //sombreado
+            padding : '16px 32px 24px 32px',  //margen interior
+    
+        },
+        modalItems : {
+            
+            paddingBottom : 20,
+            textAlign : 'center',
+            //minWidth : '100%'
+    
+        
+    
+        },
+        modalInputsNuevaFila : {
+            
+            width : '90%'
+    
+    
+        },
+        modalBotones : {
+            display : 'flex',  //para que haga efecto el 'justify-content'
+            justifyContent : 'space-evenly',
+            
+    
+        },
+    
+    
+    })
+
+
+}
 
 
 function EditarProductos() {
@@ -137,7 +262,7 @@ function EditarProductos() {
         useEffect(() => {
             if (permitirPeticion) { // para que la peticion no se ejecute indefinidamente.
     
-                axios.get('http://localhost:4000/api/consumos').then(res => {
+                axios.get(cookies.get('urlApi') + '/api/consumos').then(res => {
 
                     res.data.map((row, index) => row["id"] = index) //guardo en el campo 'id' de todas las filas, el indice .
                     //Esto lo hago para que las filas queden enumeradas, y pueda utilizarse en el dataGrid.
@@ -163,7 +288,7 @@ function EditarProductos() {
     useEffect(() => {
         if (permitirPeticion2) { // para que la peticion no se ejecute indefinidamente.
 
-            axios.get('http://localhost:4000/api/productos').then(res => {
+            axios.get(cookies.get('urlApi') + '/api/productos').then(res => {
                 setArrayProductos(res.data)
                 setPermitirPeticion2(false)//bloquear la peticion a la api una vez que obtengo los datos.
             });
@@ -179,7 +304,7 @@ function EditarProductos() {
         useEffect(() => {
             if (permitirPeticion3) { // para que la peticion no se ejecute indefinidamente.
     
-                axios.get('http://localhost:4000/api/insumos').then(res => {
+                axios.get(cookies.get('urlApi') + '/api/insumos').then(res => {
                     
                     setArrayInsumos(res.data)
                     setPermitirPeticion3(false)//bloquear la peticion a la api una vez que obtengo los datos.
@@ -217,7 +342,7 @@ function EditarProductos() {
             
 
 
-            await axios.put('http://localhost:4000/api/consumos', nuevosDatos)
+            await axios.put(cookies.get('urlApi') + '/api/consumos', nuevosDatos)
 
   
 
@@ -245,7 +370,7 @@ function EditarProductos() {
             }
             
 
-            await axios.post('http://localhost:4000/api/consumos', nuevaFila)
+            await axios.post(cookies.get('urlApi') + '/api/consumos', nuevaFila)
 
             setVentanaNuevaFila(!ventanaNuevaFila) // cierro la ventana modal seteando el estado 'ventanaNuevaFila'
 
@@ -278,7 +403,7 @@ function EditarProductos() {
             //(tambien, tener en cuenta que el dataGrid esta mostrando el contenido de 'arrayConsumos', 
             //el cual a su vez tiene almacenado el campo _id de cada fila).
 
-            axios.delete('http://localhost:4000/api/consumos/' + _idDeLaFilaAEliminar ).then(setPermitirPeticion(true))
+            axios.delete(cookies.get('urlApi') + '/api/consumos/' + _idDeLaFilaAEliminar ).then(setPermitirPeticion(true))
             // elimino el registro con ese _id. (solo puede haber uno)
             // luego de cumplirse la peticion, actualizo el contenido del dataGrid, invocando a 'setPermitirPeticion()'
         }
@@ -298,7 +423,7 @@ function EditarProductos() {
 
                 }
                 
-                await axios.post('http://localhost:4000/api/productos', nuevoProducto)
+                await axios.post(cookies.get('urlApi') + '/api/productos', nuevoProducto)
 
                 setVentanaNuevoProducto(!ventanaNuevoProducto) // cierro la ventana modal seteando el estado 'ventanaNuevoProducto'
 
@@ -320,7 +445,7 @@ function EditarProductos() {
     
             let nombreDelProductoAEliminar = refModalEliminarProducto.current.children[1].children[0].children[0].innerText
 
-            axios.delete('http://localhost:4000/api/productos/' + nombreDelProductoAEliminar)
+            axios.delete(cookies.get('urlApi') + '/api/productos/' + nombreDelProductoAEliminar)
             .then(setPermitirPeticion2(true))
             .then(setVentanaEliminarProducto(!ventanaEliminarProducto))
             // elimino el producto con el nombre indicado.
@@ -535,10 +660,8 @@ function EditarProductos() {
                 <Grid container className={estilos.containerSuperior}>
 
 
-                    <Grid item xs={false} sm={1} md={1} lg={1} xl={1}>
 
-                    </Grid>
-                    <Grid item xs={12} sm={10} md={10} lg={10} xl={10} >
+                    <Grid item className = {estilos.dataGrid} >
 
 
 
@@ -554,9 +677,7 @@ function EditarProductos() {
                         />
 
                     </Grid>
-                    <Grid item xs={false} sm={1} md={1} lg={1} xl={1}>
 
-                    </Grid>
 
                 </Grid>
 

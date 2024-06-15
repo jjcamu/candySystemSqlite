@@ -50,9 +50,13 @@ const Login = () => {
 
 
 
+  cookies.set ('urlApi', 'https://candysystembackend.onrender.com' , {path: "/" })  //almaceno en una cookie 
+  //la url de la api, para ser accedida desde todas las paginas
+
   const guardarPassword = (event) => {    
     
-    objetoPass.pass = md5(event.target.value)   //guardo el password ingresado en el textfield en la propiedad 'pass'
+    objetoPass.pass = md5(event.target.value)   //convierto con cifrado md5 el password ingresado en el textfield , 
+    // y lo guardo en la propiedad 'pass'
 
   }
 
@@ -61,7 +65,7 @@ const Login = () => {
   async function procesarPassword(){
 
     // busco en la api el password ingresado
-    await axios.post('http://localhost:4000/api/login' , objetoPass ).then(res => {   //cuando se cumpla la peticion...
+    await axios.post(cookies.get('urlApi') + '/api/login' , objetoPass ).then(res => {   //cuando se cumpla la peticion...
                
       if(res.data.length != 0){  //si el array 'res.data' tiene algun elemento (osea, se encontró el password ingresado)
 

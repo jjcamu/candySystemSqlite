@@ -24,8 +24,11 @@ import './estiloPaginaImpresion.css';
 
 
 // creo los estilos
+var useStyles
 
-const useStyles = makeStyles({
+if (window.innerWidth > 700){  //si la pantalla del dispositivo es mayor a 700 (por ej: una PC)
+
+    useStyles = makeStyles({
 
 
     root : {
@@ -43,13 +46,11 @@ const useStyles = makeStyles({
 
         },
             fecha1 : {
-                justifyContent : 'flex-end',
-                
+                justifyContent : 'flex-end',            
 
             },
             fecha2 : {
                 paddingLeft : '20px'
-
             },
         containerTitulos : {
             
@@ -73,7 +74,6 @@ const useStyles = makeStyles({
         },
 
 
-
     containerInferior : {  //grid container que contiene a su vez el grid container de los botones.
     
         height : '30%',
@@ -89,18 +89,12 @@ const useStyles = makeStyles({
     },
     boton: {  // cada boton individual
         height : '100%',  //todos los botones tendran el alto del container padre, (del container botones)
-
         width : '200px', // establezco el mismo ancho para todos los botones (colocar la abreviacion 'px' !!)
-
-
-
         
     },
     contenidoAImprimir:{  //estilo del div contenedor de la hoja a imprimir, para que no sea visible en el navegador.
 
         display: 'none',  //invisible
-       
- 
  
     },
     contenidoAImprimir2:{  // estilos de la hoja a imprimir -------------------------------------------------------------
@@ -108,12 +102,10 @@ const useStyles = makeStyles({
          display: 'flex',
          flexDirection: 'column', //un container encima del otro
  
- 
     },
     tituloAImprimir:{
  
          textAlign: 'center',  //titulo centrado
-
  
     },
     tituloAImprimir2:{
@@ -128,12 +120,114 @@ const useStyles = makeStyles({
          
     },
 
+    })
 
 
+}else{ //si la pantalla del dispositivo es menor a 500 (por ej: un celular)
+
+    useStyles = makeStyles({
 
 
+        root : {
 
-})
+            backgroundColor : 'gray',
+            height: '95vh',  //que ocupe casi todo el alto de la pantalla
+        },
+        containerSuperior : {
+            height : '70%' ,   
+            justifyContent : 'center',  
+            
+        },
+            containerFecha : {
+                
+    
+            },
+                fecha1 : {
+                    justifyContent : 'center',            
+    
+                },
+                fecha2 : {
+                    display:'flex',
+                    justifyContent : 'center',
+                  
+                },
+            containerTitulos : {
+                justifyContent : 'center'
+            },
+                titulo1 : {
+                    justifyContent : 'center'
+                },
+                titulo2 : {
+                    justifyContent : 'center'
+                },
+    
+            cargadas : {
+
+                height : '40%' ,  
+                overflowY : 'scroll',  //si el contenido sobrepasa (overflow) el limite inferior de su contenedor, se crea una scroll bar.
+                
+            },
+            botonAgregarCargada : {
+                justifyContent : 'center',
+                padding: '20px'
+            },
+    
+    
+        containerInferior : {  //grid container que contiene a su vez el grid container de los botones.
+        
+            height : '30%',
+            alignItems : 'center',
+    
+    
+        },
+        containerBotones: { // grid container que contiene a los botones.
+    
+            display : 'flex',
+            flexDirection : 'column',
+            alignItems: 'center', 
+            justifyContent : 'space-around'
+
+            
+        },
+        boton: {  // cada boton individual
+            height : '100%',  //todos los botones tendran el alto del container padre, (del container botones)
+            width : '200px', // establezco el mismo ancho para todos los botones (colocar la abreviacion 'px' !!)
+            margin: '7px',
+
+            
+    
+        },
+        contenidoAImprimir:{  //estilo del div contenedor de la hoja a imprimir, para que no sea visible en el navegador.
+    
+            display: 'none',  //invisible
+     
+        },
+        contenidoAImprimir2:{  // estilos de la hoja a imprimir -------------------------------------------------------------
+     
+             display: 'flex',
+             flexDirection: 'column', //un container encima del otro
+     
+        },
+        tituloAImprimir:{
+     
+             textAlign: 'center',  //titulo centrado
+     
+        },
+        tituloAImprimir2:{
+     
+            display: 'flex',   //reseteo flex para sobreescribir el flexDirection column
+            justifyContent: 'space-around',  //distribuyo horizontalmente los subtitulos
+    
+    
+       },
+        listaAImprimir :{
+            textAlign: 'center'  // centrar la lista
+             
+        },
+    
+        })
+
+}
 
 
 
@@ -215,7 +309,7 @@ const RealizarPedido = () => {
              
             //realizo la peticion asincrona al servidor donde se encuentra alojada la api (el backend), y almaceno en la coleccion 
             // 'pedidos' de la base de datos, la informacion contenida en 'nuevoPedido' 
-            await axios.post('http://localhost:4000/api/pedidos', nuevoPedido) 
+            await axios.post(cookies.get('urlApi') + '/api/pedidos', nuevoPedido) 
                 .then(res => res.data.message.length > 0 && window.alert((res.data.message).map((item) => item + '\n'))) 
                 //muestro la informacion proveniente de la api en un cuadro de dialogo
                 // '&&' indica que la expresion que lo precede (res.data.message.length > 0) es un condicional. 
@@ -433,12 +527,12 @@ const RealizarPedido = () => {
                 propiedades 'xs, sm, md.. ' a un Grid container    */} 
 
             <Grid container className ={estilos.containerTitulos} >
-                <Grid container item ={true} xs={12} sm={6} md={6} lg={6} xl={6} className ={estilos.titulo1} >
+                <Grid container item ={true} xs={6} sm={6} md={6} lg={6} xl={6} className ={estilos.titulo1} >
 
                     <Typography >CANTIDAD :</Typography>
 
                 </Grid>
-                <Grid container item ={true} xs={12} sm={6} md={6} lg={6} xl={6} className ={estilos.titulo2} >
+                <Grid container item ={true} xs={6} sm={6} md={6} lg={6} xl={6} className ={estilos.titulo2} >
 
                     <Typography >PRODUCTO :</Typography>
 

@@ -8,6 +8,8 @@ import axios from 'axios'  //modulo que me permite acceder a la api
 import md5 from 'md5' //para el cifrado de contraseñas
 import Cookies from 'universal-cookie' //para almacenar la contraseña y que se encuentre al alcance de todas las paginas 
 
+import { useHistory } from "react-router-dom" // otra manera de redirigir a una pagina
+
 /// Defino los estilos
 
 const useStyles = makeStyles({
@@ -42,6 +44,8 @@ const Login = () => {
 
 
   const estilos = useStyles()
+
+  let history = useHistory() // otra forma de redirigir a una pagina 
 
   const cookies = new Cookies(); // creo un objeto Cookies
 

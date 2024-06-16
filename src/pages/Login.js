@@ -124,6 +124,7 @@ const Login = () => {
 
         <div className={estilos.cuadro}>
 
+          <div className={estilos.espera}>  <Typography> {espera} </Typography></div>
 
           <div>
             <Typography>Ingrese la contraseña :</Typography>
@@ -134,7 +135,7 @@ const Login = () => {
           </div>
 
 
-          <div className={estilos.espera}>  <Typography> {espera} </Typography></div>
+
           
           <div className={estilos.boton}>
             <Button onClick={procesarPassword} variant={'contained'} color={"primary"}>

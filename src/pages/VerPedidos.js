@@ -229,10 +229,15 @@ function VerPedidos() {
     /// mostrar pedidos------------------------------------------------------------------------
 
     useEffect(() => {
-        if (permitirPeticion) { //para que no se llame indefinidamente a la funcion 'mostrarPedidos'
-
-                mostrarPedidos()
+        if (permitirPeticion) { //para que no se hagan peticiones get indefinidamente
+            
+            axios.get(cookies.get('urlApi') + '/api/pedidos').then(res => {
+                
+                setArrayPedidos(res.data)
                 setPermitirPeticion(false)
+
+            }); 
+            
 
         }
 
@@ -240,21 +245,10 @@ function VerPedidos() {
             window.location.href = "/" //se redirigirá automaticamente al 'login'
         } 
          
-    }, [permitirPeticion]) //cada vez que cambie el estado de la bandera, se llamará a 'useEffect'
-
-
-    function mostrarPedidos() { 
-
-
-        axios.get(cookies.get('urlApi') + '/api/pedidos').then(res => {
-               
-            setArrayPedidos(res.data)
-
-        }); 
+    }, [arrayPedidos, permitirPeticion]) //cada vez que cambie el estado de la bandera, se llamará a 'useEffect'
 
 
 
-    }
     
 
     /// Eliminar pedidos ----------------------------------------------------------------------------------------------

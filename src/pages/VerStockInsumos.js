@@ -298,10 +298,23 @@ function VerStockInsumos() {
 
 
         useEffect(() => {
-            if (permitirPeticion) { //para que no se llame indefinidamente a la funcion 'mostrarPedidos'
+            if (permitirPeticion) { //para que no se hagan peticiones get indefinidamente
     
-                    mostrarInsumos()
+                axios.get(cookies.get('urlApi') + '/api/insumos').then(res => {
 
+                    res.data.map((row, index) => row["id"] = index) //guardo en el campo 'id' de todas las filas, el indice .
+                    //Esto lo hago para que las filas queden enumeradas, y pueda utilizarse en el dataGrid.
+        
+                    setArrayInsumos(res.data)
+
+                    calcularHojasYColumnas(res.data)  //diseño la hoja de impresion segun los datos traidos de la BBDD
+
+                    
+
+                    setPermitirPeticion(false)  // seteo la bandera desde aca, porque
+                    // al trabajar con peticiones y datagrids se producen 'delays' y no llega a cargarse el datagrid con los datos.
+        
+                });
                   
     
             }
@@ -310,31 +323,9 @@ function VerStockInsumos() {
                 window.location.href = "/" //se redirigirá automaticamente al 'login'
             }
              
-        }, [permitirPeticion, hojaAImprimir]) //cada vez que cambie el estado de la bandera, se llamará a 'useEffect'
+        }, [arrayInsumos, permitirPeticion, hojaAImprimir]) //cada vez que cambie el estado de la bandera, se llamará a 'useEffect'
     
     
-        function mostrarInsumos() { 
-    
-    
-            axios.get(cookies.get('urlApi') + '/api/insumos').then(res => {
-
-                res.data.map((row, index) => row["id"] = index) //guardo en el campo 'id' de todas las filas, el indice .
-                //Esto lo hago para que las filas queden enumeradas, y pueda utilizarse en el dataGrid.
-    
-                setArrayInsumos(res.data)
-
-                calcularHojasYColumnas(res.data)  //diseño la hoja de impresion segun los datos traidos de la BBDD
-
-                
-
-                setPermitirPeticion(false)  // a diferencia del componente 'VerPedido.js', seteo la bandera desde aca, porque
-                // al trabajar con peticiones y datagrids se producen 'delays' y no llega a cargarse el datagrid con los datos.
-    
-            });
-    
-        
-    
-        }
         
           
 

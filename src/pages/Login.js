@@ -1,6 +1,6 @@
 /// Pagina de 'login'
 
-import React from 'react';
+import React, {  useState }  from 'react';
 import {Button, TextField , Typography} from '@material-ui/core' 
 import {makeStyles} from '@material-ui/core/styles' // para personalizar los estilos de un elemento
 import axios from 'axios'  //modulo que me permite acceder a la api
@@ -33,6 +33,12 @@ const useStyles = makeStyles({
     boton:{
       //backgroundColor: 'red',
       paddingTop: '50px'
+    },
+    espera:{
+      margin: '30px',
+      minWidth : '150px',
+      color: 'darkred'
+
     }
 })
 
@@ -52,6 +58,7 @@ const Login = () => {
   var objetoPass = {}  //creo un objeto 'objetoPass', ya que la peticion de 'axios' solo me permite enviar objetos, 
   //y no simples variables.
 
+  const [espera, setEspera] = useState(' ')
 
 
   cookies.set ('urlApi', 'https://candysystembackend.onrender.com' , {path: "/" })  //almaceno en una cookie 
@@ -68,6 +75,8 @@ const Login = () => {
 
   async function procesarPassword(){
 
+    setEspera('Espere unos segundos por favor...')
+
     // busco en la api el password ingresado
     await axios.post(cookies.get('urlApi') + '/api/login' , objetoPass ).then(res => {   //cuando se cumpla la peticion...
                
@@ -76,11 +85,14 @@ const Login = () => {
 
         cookies.set ("id", res.data[0]._id , {path: "/" })  //almaceno en la cookie el id del documento devuelto por la api
 
+
         //window.location.href= '/principal'  //redirecciono a la pagina principal
         history.push("/principal") 
 
       }else{
         window.alert('La contraseña ingresada no es correcta.')
+
+        setEspera(' ')
       }
 
 
@@ -107,6 +119,9 @@ const Login = () => {
           <div>
             <TextField type="password" onChange={guardarPassword}  />
           </div>
+
+
+          <div className={estilos.espera}>  <Typography> {espera} </Typography></div>
           
           <div className={estilos.boton}>
             <Button onClick={procesarPassword} variant={'contained'} color={"primary"}>

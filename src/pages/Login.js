@@ -69,6 +69,7 @@ const Login = () => {
     objetoPass.pass = md5(event.target.value)   //convierto con cifrado md5 el password ingresado en el textfield , 
     // y lo guardo en la propiedad 'pass'
 
+
   }
 
 
@@ -103,6 +104,18 @@ const Login = () => {
   }
 
 
+  function comprobarTeclaEnter(e){
+
+    if(e.keyCode == 13){  //si se presiono la tecla Enter
+
+      procesarPassword()
+
+    }
+
+
+  }
+
+
 
   return (
     <div className={estilos.root}>
@@ -117,7 +130,7 @@ const Login = () => {
           </div>
             
           <div>
-            <TextField type="password" onChange={guardarPassword}  />
+            <TextField type="password" onChange={guardarPassword} onKeyDown={comprobarTeclaEnter} />
           </div>
 
 

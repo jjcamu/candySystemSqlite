@@ -146,6 +146,7 @@ const Login = () => {
         cookies.set ("id", res.data[0]._id , {path: "/" })  //almaceno en la cookie el id del documento devuelto por la api
 
 
+        setMostrarBarra(false)
         //window.location.href= '/principal'  //redirecciono a la pagina principal
         history.push("/principal") 
 
@@ -153,6 +154,8 @@ const Login = () => {
         window.alert('La contraseña ingresada no es correcta.')
 
         setEspera(' ')
+
+        setMostrarBarra(false)
       }
 
 

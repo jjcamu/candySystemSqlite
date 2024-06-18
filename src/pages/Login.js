@@ -1,7 +1,8 @@
 /// Pagina de 'login'
 
-import React, {  useState }  from 'react';
+import React, {  useState, useEffect }  from 'react';
 import {Button, TextField , Typography} from '@material-ui/core' 
+import LinearProgress from "@material-ui/core/LinearProgress";  // barra de progreso
 import {makeStyles} from '@material-ui/core/styles' // para personalizar los estilos de un elemento
 import axios from 'axios'  //modulo que me permite acceder a la api
 
@@ -39,9 +40,50 @@ const useStyles = makeStyles({
       minWidth : '150px',
       color: 'darkred'
 
+    },
+    barra: {
+      minWidth : '150px',
+    },
+    textoProgreso:{
+      textAlign : 'center',
+      paddingBottom: '20px'
     }
 })
 
+
+
+
+
+const BarraConTexto = () => {
+
+
+  const estilos = useStyles()
+
+
+      //progreso de la barra
+      const [progreso, setProgreso] = useState(5);
+
+      useEffect(() => {
+        const timer = setInterval(() => {
+          setProgreso((prev) => (prev >= 100 ? 5 : prev + 5));
+        }, 1500);
+        return () => {
+          clearInterval(timer);
+        };
+      }, []);
+
+  return(
+
+  <div >
+
+    <LinearProgress className={estilos.barra} variant='determinate' value={progreso} />
+    
+    <Typography  className={estilos.textoProgreso} variant="body2" color="textSecondary">{`${Math.round(progreso)}%`}</Typography>
+  
+  </div>
+
+  )
+}
 
 
 
@@ -58,7 +100,18 @@ const Login = () => {
   var objetoPass = {}  //creo un objeto 'objetoPass', ya que la peticion de 'axios' solo me permite enviar objetos, 
   //y no simples variables.
 
+
+
+
+
+
+  const [mostrarBarra, setMostrarBarra] = useState(false)
+
   const [espera, setEspera] = useState(' ')
+
+
+
+
 
 
   cookies.set ('urlApi', 'https://candysystembackend.onrender.com' , {path: "/" })  //almaceno en una cookie 
@@ -74,11 +127,17 @@ const Login = () => {
 
 
 
+
+
   async function procesarPassword(){
 
     setEspera('Espere unos segundos por favor...')
 
+    setMostrarBarra(true)
+
+   
     // busco en la api el password ingresado
+
     await axios.post(cookies.get('urlApi') + '/api/login' , objetoPass ).then(res => {   //cuando se cumpla la peticion...
                
       if(res.data.length != 0){  //si el array 'res.data' tiene algun elemento (osea, se encontró el password ingresado)
@@ -98,6 +157,7 @@ const Login = () => {
 
 
     });
+
 
 
 
@@ -124,7 +184,14 @@ const Login = () => {
 
         <div className={estilos.cuadro}>
 
+
+
           <div className={estilos.espera}>  <Typography> {espera} </Typography></div>
+
+
+          { mostrarBarra ? <BarraConTexto  /> : null }
+
+
 
           <div>
             <Typography>Ingrese la contraseña :</Typography>

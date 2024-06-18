@@ -54,7 +54,8 @@ const useStyles = makeStyles({
 
 
 
-const BarraConTexto = () => {
+const BarraConTexto = () => {   
+//Componente que renderiza una barra de progreso
 
 
   const estilos = useStyles()
@@ -65,8 +66,8 @@ const BarraConTexto = () => {
 
       useEffect(() => {
         const timer = setInterval(() => {
-          setProgreso((prev) => (prev >= 100 ? 5 : prev + 5));
-        }, 1500);
+          setProgreso((prev) => (prev >= 100 ? 100 : prev + 5));
+        }, 1800); // cada 1,8 seg se actualiza el estado 'progreso'
         return () => {
           clearInterval(timer);
         };
@@ -76,7 +77,7 @@ const BarraConTexto = () => {
 
   <div >
 
-    <LinearProgress className={estilos.barra} variant='determinate' value={progreso} />
+    <LinearProgress className={estilos.barra} variant='determinate' value={progreso} />  {/* barra de progreso de material ui */}
     
     <Typography  className={estilos.textoProgreso} variant="body2" color="textSecondary">{`${Math.round(progreso)}%`}</Typography>
   
@@ -102,20 +103,16 @@ const Login = () => {
 
 
 
-
-
-
   const [mostrarBarra, setMostrarBarra] = useState(false)
 
   const [espera, setEspera] = useState(' ')
 
 
 
-
-
-
   cookies.set ('urlApi', 'https://candysystembackend.onrender.com' , {path: "/" })  //almaceno en una cookie 
   //la url de la api, para ser accedida desde todas las paginas
+
+
 
   const guardarPassword = (event) => {    
     
@@ -133,7 +130,7 @@ const Login = () => {
 
     setEspera('Espere unos segundos por favor...')
 
-    setMostrarBarra(true)
+    setMostrarBarra(true)  
 
    
     // busco en la api el password ingresado
@@ -192,7 +189,7 @@ const Login = () => {
           <div className={estilos.espera}>  <Typography> {espera} </Typography></div>
 
 
-          { mostrarBarra ? <BarraConTexto  /> : null }
+          { mostrarBarra ? <BarraConTexto  /> : null }   {/* si el estado 'mostrarBarra' es 'true', renderizo el componente, sino es 'null' */}
 
 
 

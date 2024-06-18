@@ -67,7 +67,7 @@ const BarraConTexto = () => {
       useEffect(() => {
         const timer = setInterval(() => {
           setProgreso((prev) => (prev >= 100 ? 100 : prev + 5));
-        }, 1800); // cada 1,8 seg se actualiza el estado 'progreso'
+        }, 2000); // cada 1,9 seg se actualiza el estado 'progreso'
         return () => {
           clearInterval(timer);
         };
@@ -157,6 +157,7 @@ const Login = () => {
 
 
     });
+
 
 
 

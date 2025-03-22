@@ -109,8 +109,10 @@ const Login = () => {
 
 
 
-  cookies.set ('urlApi', 'https://candysystembackend.onrender.com' , {path: "/" })  //almaceno en una cookie 
-  //la url de la api, para ser accedida desde todas las paginas
+/*   cookies.set ('urlApi', 'https://candysystembackend.onrender.com' , {path: "/" })  //almaceno en una cookie 
+  //la url de la api, para ser accedida desde todas las paginas */
+
+  cookies.set ('urlApi', '  http://localhost:4000' , {path: "/" }) 
 
 
 
@@ -140,7 +142,10 @@ const Login = () => {
       if(res.data.length != 0){  //si el array 'res.data' tiene algun elemento (osea, se encontró el password ingresado)
 
 
-        cookies.set ("id", res.data[0]._id , {path: "/" })  //almaceno en la cookie el id del documento devuelto por la api
+        cookies.set ("id", res.data._id , {path: "/" })  //almaceno en la cookie el id del documento devuelto por la api
+        console.log(res.data._id)
+        
+        //cookies.set ("id", res.data[0]._id , {path: "/" })  //almaceno en la cookie el id del documento devuelto por la api
 
 
         setMostrarBarra(false)

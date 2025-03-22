@@ -233,6 +233,8 @@ function VerPedidos() {
             
             axios.get(cookies.get('urlApi') + '/api/pedidos').then(res => {
                 
+                console.log(res.data)
+
                 setArrayPedidos(res.data)
                 setPermitirPeticion(false)
 

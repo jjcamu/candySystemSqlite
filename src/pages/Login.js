@@ -109,12 +109,12 @@ const Login = () => {
 
 
 
-/*   cookies.set ('urlApi', 'https://candysystembackend.onrender.com' , {path: "/" })  //almaceno en una cookie 
+/*   cookies.set ('urlApi', 'https://candysystemsqlitebackend.onrender.com'  , {path: "/" })  //almaceno en una cookie 
   //la url de la api, para ser accedida desde todas las paginas */
 
-  cookies.set ('urlApi', '  http://localhost:4000' , {path: "/" }) 
+  cookies.set ('urlApi', 'https://candysystemsqlitebackend.onrender.com'   , {path: "/" }) 
 
-
+//'  http://localhost:4000'
 
   const guardarPassword = (event) => {    
     

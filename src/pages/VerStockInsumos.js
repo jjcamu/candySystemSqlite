@@ -297,13 +297,14 @@ function VerStockInsumos() {
 
 
 
-        useEffect(() => {
+        useEffect( async () => {
             if (permitirPeticion) { //para que no se hagan peticiones get indefinidamente
     
-                axios.get(cookies.get('urlApi') + '/api/insumos').then(res => {
+                await axios.get(cookies.get('urlApi') + '/api/insumos').then(res => {
 
-                    res.data.map((row, index) => row["id"] = index) //guardo en el campo 'id' de todas las filas, el indice .
+                    res.data.map((row, index) => {row["id"] = index ; if (row["cantidad"] < 0) row["cantidad"] = 0 }) //guardo en el campo 'id' de todas las filas, el indice .
                     //Esto lo hago para que las filas queden enumeradas, y pueda utilizarse en el dataGrid.
+                    //si la cantidad de algun insumo es negativo, que se muestre cero.
         
                     setArrayInsumos(res.data)
 
@@ -341,6 +342,10 @@ function VerStockInsumos() {
         for (let x = 0; x < cantidadFilasDataGrid; x++) { // itero todas las filas del dataGrid
 
 
+/*             console.log(arrayInsumos[x].cantidad)
+            console.log(apiRef.current.getRow(x).cantidad) */
+
+
             const nuevosDatos = {  //creo un objeto por cada fila
                 //guardo el contenido de cada celda en la propiedad correspondiente
 
@@ -349,18 +354,18 @@ function VerStockInsumos() {
                 // No confundir este campo '_id' con el campo 'id', que fue creado para poder utilizar el dataGrid.
 
                
-                nombre: await apiRef.current.getRow(x).nombre, //tomo el valor guardado en la fila 'x' columna 'nombre', y lo guardo en la propiedad 'nombre'
-                cantidad: await apiRef.current.getRow(x).cantidad,
-                unidad: await apiRef.current.getRow(x).unidad,
-                limite: await apiRef.current.getRow(x).limite,
+                nombre: apiRef.current.getRow(x).nombre, //tomo el valor guardado en la fila 'x' columna 'nombre', y lo guardo en la propiedad 'nombre'
+                cantidad: apiRef.current.getRow(x).cantidad,
+                unidad: apiRef.current.getRow(x).unidad,
+                limite: apiRef.current.getRow(x).limite,
                 
             }
 
+
             await axios.put(cookies.get('urlApi') + '/api/insumos', nuevosDatos)
 
-  
 
-
+           
         }
        
 
@@ -382,7 +387,9 @@ function VerStockInsumos() {
             
             await axios.post(cookies.get('urlApi') + '/api/insumos', nuevoInsumo)
 
-            setVentanaNuevaFila(!ventanaNuevaFila) // cierro la ventana modal seteando el estado 'ventanaNuevaFila'
+            //setVentanaNuevaFila(!ventanaNuevaFila) // cierro la ventana modal seteando el estado 'ventanaNuevaFila'
+
+            nuevaFila()
 
             setPermitirPeticion(true)  // actualizo el contenido del dataGrid  
 

@@ -259,13 +259,17 @@ function EditarProductos() {
         const [arrayConsumos, setArrayConsumos] = useState([])
         const [permitirPeticion, setPermitirPeticion] = useState(true) // bandera que utilizo para bloquear las peticiones constantes a la api.
     
-        useEffect(() => {
+        useEffect(async () => {
             if (permitirPeticion) { // para que la peticion no se ejecute indefinidamente.
     
-                axios.get(cookies.get('urlApi') + '/api/consumos').then(res => {
+                await axios.get(cookies.get('urlApi') + '/api/consumos').then(res => {
+
+ 
 
                     res.data.map((row, index) => row["id"] = index) //guardo en el campo 'id' de todas las filas, el indice .
                     //Esto lo hago para que las filas queden enumeradas, y pueda utilizarse en el dataGrid.
+
+                   
                     setArrayConsumos(res.data)
                     setPermitirPeticion(false)//bloquear la peticion a la api una vez que obtengo los datos.
                 });
@@ -368,7 +372,9 @@ function EditarProductos() {
                 consumoPorTachada : refModalAgregarFila.current.children[2].children[1].children[0].children[0].value,
                 unidadInsumo : refModalAgregarFila.current.children[3].children[1].innerText
             }
-            
+
+
+
 
             await axios.post(cookies.get('urlApi') + '/api/consumos', nuevaFila)
 
@@ -585,7 +591,11 @@ function EditarProductos() {
 
     const mostrarUnidadVentanaModal = (e) => {
 
-        setEstadoUnidadVentanaModal(e.target.value)  //guardo en el estado 'estadoUnidadVentanaModal' la unidad correspondiente
+
+
+        //console.dir(arrayInsumos[e.target.value].unidad )
+
+        setEstadoUnidadVentanaModal(arrayInsumos[e.target.value].unidad)  //guardo en el estado 'estadoUnidadVentanaModal' la unidad correspondiente
         //al insumo seleccionado en la ventana modal.
     }
 
@@ -597,7 +607,7 @@ function EditarProductos() {
     function mostrarUnidad(e){
         try {  //con try-catch puedo prevenir errores por alguna variable 'undefined'
             
-            
+  
             let unidad = arrayInsumos[e.target.value].unidad  //tomo la unidad correspondiente al insumo elegido en el select.
             //'e.target.value' devuelve el numero de fila del insumo seleccionado en el select
 
@@ -818,9 +828,9 @@ function EditarProductos() {
                             <Typography>Insumo:</Typography>
                             <Select className={estilos.modalInputsNuevaFila} defaultValue="" onChange={mostrarUnidadVentanaModal}>
 
-                                {arrayInsumos.map((insumo, index) => (<MenuItem key={index} value={insumo.unidad}>{insumo.nombre}</MenuItem>))}
+                                {arrayInsumos.map((insumo, index) => (<MenuItem key={index} value={index} >{insumo.nombre}</MenuItem>))}
                                {/*  guardo en 'value' la unidad del insumo, para ser utilizada en la funcion 'mostrarUnidadVentanaModal' , 
-                                debido a que el valor de 'value' viaja dentro del evento 'onChange' hacia la mencionada funcion. */}
+                                debido a que el valor de 'value' viaja dentro del evento 'onChange' hacia la mencionada funcion.  */}
                             </Select>
                         </Grid>
 
